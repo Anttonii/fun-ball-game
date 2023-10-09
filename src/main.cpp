@@ -1,51 +1,24 @@
-#include <stdio.h>
-
-#include "SDL.h"
-#include "SDL_image.h"
-#include "SDL_timer.h"
-#include "SDL_ttf.h"
-
+#include "Application.h"
 #include "Game.h"
 
 #include <iostream>
 
 int main(int argc, char *argv[])
 {
-    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-        printf("error initializing SDL: %s\n", SDL_GetError());
-    }
-
-    SDL_Window* win = SDL_CreateWindow("Funny Ball Game",
-                                       SDL_WINDOWPOS_CENTERED,
-                                       SDL_WINDOWPOS_CENTERED,
-                                       800, 800, 0);
- 
-    SDL_SetWindowMouseGrab(win, SDL_TRUE);
-    SDL_ShowCursor(SDL_DISABLE);
-
-    Uint32 render_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
-    SDL_Renderer* rend = SDL_CreateRenderer(win, -1, render_flags);
-    bool close = false;
-
-    int ttf = TTF_Init();
-    if (ttf != 0)
-    {
-        std::cout << "Failed to initialize TTF engine." << std::endl;
-    }
+    Application * application = new Application("Suika Game", 800, 800);
+    application->initApplication(WINDOW_HIDDEN);
     
-    Game game(rend, &close);
-    if(!game.init())
+    Game * game = new Game(application);
+    if(!game->init())
     {
-        close = true;
+        application->setShouldClose(true);
     }
-    game.startGame();
+    game->startGame();
     
-    while (!close) {
-        game.tick();
+    application->setCurrentScene(game);
+    while (application->isRunning()) {
+        application->tick();
     }
- 
-    SDL_DestroyRenderer(rend);
-    SDL_DestroyWindow(win);
-    SDL_Quit();
+
     return 0;
 }

@@ -1,5 +1,5 @@
-#ifndef GAME_H__
-#define GAME_H__
+#ifndef GAME_H
+#define GAME_H
 
 #include <vector>
 #include <iostream>
@@ -12,10 +12,12 @@
 
 #include "box2d/box2d.h"
 
+#include "Application.h"
 #include "Ball.h"
 #include "Texture.h"
 #include "Utils.h"
 #include "Text.h"
+#include "Scene.h"
 
 #define LEFT_BORDER_X 50.0f
 #define LEFT_BORDER_Y 50.0f
@@ -39,7 +41,7 @@
 #define DROP_DELAY 750
 
 // gravity vector
-static const b2Vec2 _gravity = b2Vec2(0, 10);
+static const b2Vec2 gravity = b2Vec2(0, 10);
 
 static Texture * loadAllBallTextures(SDL_Renderer * renderer)
 {
@@ -82,7 +84,6 @@ struct BallQueueData
     b2Vec2 initialVelocity;
 };
 
-
 // forward declaration for BallContactListener
 class Game;
 
@@ -91,40 +92,45 @@ class BallContactListener : public b2ContactListener
 {
     public:
         // Store a reference to the game, the b2world and bounds for the edges of the game
-        BallContactListener(Game * game, b2World * world);
+        BallContactListener(Game * _game, b2World * _world);
         ~BallContactListener();
 
         void BeginContact(b2Contact * contact);
         //void PreSolve(b2Contact* contact, const b2Manifold* oldManifold);
     private:
-        Game * _game;
-        b2World * _world;
+        Game * game;
+        b2World * world;
 };
 
-class Game
+class Game : public Scene
 {
     public:
-        Game(SDL_Renderer * renderer, bool * close);
+        Game(Application * app);
         ~Game();
 
         // Initializes dependencies and other things before starting a game.
         bool init();
-        void tick() noexcept;
+
         // Adds all the necessary components for a game to be played
         void startGame() noexcept;
 
-        const std::unique_ptr<Ball>& getBallFromBody(b2Body * body) noexcept;
+        // Returns a pointer to a ball from given b2Body
+        // If none was found, returns NULL.
+        Ball* getBallFromBody(b2Body * body) noexcept;
         
         void addBallToQueue(float x, float y, int ballType, b2Vec2 initialVelocity) noexcept;
-
-        int score = 0;
+        
+        // Virtual functions defined by scene.
+        void render(SDL_Renderer * renderer);
+        void pollEvents();
+        void cleanUp();
+        void update();
 
         void updateScoreText();
+        inline void addScore(int _score) noexcept { score += _score; };
     private:
         Game(const Game& game); // no copy constructor
-        
-        void render() noexcept;
-        void pollEvents() noexcept;
+
         void addEdge(float x, float y, float width, float height) noexcept;
 
         // drop a ball from the dropper
@@ -138,31 +144,29 @@ class Game
         // Removes a ball and destroys it with given body
         bool removeBall(b2Body * body) noexcept;
 
-        void cleanUp() noexcept;
+        void clearBodies() noexcept;
         
-        b2BodyDef _groundBody;
-        b2World _world;
-        SDL_Renderer * _renderer;
-        bool * _onClose;
+        Application * app;
+
+        b2BodyDef groundBodyDef;
+        b2World world;
         Texture * ballTextures;
-        BallContactListener * _contactListener;
+        BallContactListener * contactListener;
 
-        std::vector<std::unique_ptr<Ball>> _balls;
-        std::vector<std::unique_ptr<Edge>> _edges;
+        std::vector<Ball *> balls;
+        std::vector<Edge> edges;
 
-        std::vector<BallQueueData> _ballsToAdd;
+        std::vector<BallQueueData> ballsToAdd;
 
-        int mouseX = 0;
-        int mouseY = 0;
+        int score = 0;
 
         int dropperY = 70;
         int dropperX = 300;
 
-        bool _paused;
+        bool paused;
         bool canDrop;
         
         Uint32 lastDrop = -DROP_DELAY;
-        Uint32 currentTime = 0;
 
         // when the game gets paused, save the difference in time
         // so that when the game gets unpaused the delay persists

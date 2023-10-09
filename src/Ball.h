@@ -1,5 +1,5 @@
-#ifndef BALL_H__
-#define BALL_H__
+#ifndef BALL_H
+#define BALL_H
 
 #include <vector>
 #include <iostream>

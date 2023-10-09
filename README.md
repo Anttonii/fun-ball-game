@@ -8,7 +8,7 @@ https://suika-game.app/
 
 ## Dependencies
 
-Fun Ball Game depends on the following libraries:
+Suika Game depends on the following libraries:
 
  - SDL2
  - SDL2_image

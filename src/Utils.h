@@ -1,5 +1,5 @@
-#ifndef UTILS_H__
-#define UTILS_H__
+#ifndef UTILS_H
+#define UTILS_H
 
 // defines the pixel conversion rate when doing calculations with box2d
 // 1 unit in box2d => 15 pixels and vice versa.
