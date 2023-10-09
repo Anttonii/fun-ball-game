@@ -1,9 +1,10 @@
-# Fun Ball Game
+# Suika Game
 
-A mixup between Tetris and 2048. Combine same color balls to create new larger balls.
+A mixup between Tetris and 2048. Combine same colored balls to create new larger balls.
 Win the game by getting to the last ball and having the highest score!
 
-Name still under consideration.
+Originally game developed in Japan and can be played on browser at:
+https://suika-game.app/
 
 ## Dependencies
 

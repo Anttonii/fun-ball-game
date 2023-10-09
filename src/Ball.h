@@ -11,7 +11,7 @@
 #include "box2d/box2d.h"
 
 #define BASE_RADIUS 25.0f
-#define BASE_DENSITY 1.0f
+#define BASE_DENSITY 0.3f
 
 // the radius multiplier applied when balls change color
 static const double RADIUS_MULTIPLIER = 1.26;

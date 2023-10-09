@@ -174,6 +174,11 @@ class Game
         std::string scoreText;
         TextObject scoreTextObject;
         TextObject nextBallTextObject;
+        
+        // Represents state of the droppers queue
+        // makes updating more intuitive, the next ball gets updated
+        // when the player is allowed to move instead of instantly.
+        bool queueUpdated = true;
 };
 
 #endif

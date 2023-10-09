@@ -50,12 +50,22 @@ void Game::startGame() noexcept
 /// @brief Handles tick updates, keeps rendering and physics in sync.
 void Game::tick() noexcept
 {
+    currentTime = SDL_GetTicks();
+
     pollEvents();
     if(!_paused)
     {
         _world.Step(TIME_STEP, 8, 3);
 
         cleanUp();
+        
+        if(currentTime - lastDrop >= DROP_DELAY && !queueUpdated)
+        {
+            BallType generated = static_cast<BallType>(rand() % 3);
+            currentBall = nextBall;
+            nextBall = generated;
+            queueUpdated = true;
+        }
         
         for(int i = 0; i < _ballsToAdd.size(); i++)
         {
@@ -82,8 +92,6 @@ void Game::tick() noexcept
 /// @brief Renders game objects to the screen.
 void Game::render() noexcept
 {
-    currentTime = SDL_GetTicks();
-
     SDL_RenderClear(_renderer);
     for(int i = 0; i < _edges.size(); i++)
     {
@@ -100,7 +108,7 @@ void Game::render() noexcept
 
     // render dropper ball
     // dropping is allowed only every 3 second, 
-    if (currentTime - lastDrop >= DROP_DELAY && !_paused)
+    if (currentTime - lastDrop + 50 >= DROP_DELAY && queueUpdated)
     {
         int radius = (int) ballTypeToRadius[currentBall];
         int diameter = radius * 2;
@@ -173,14 +181,13 @@ void Game::cleanUp() noexcept
 
 void Game::dropBall() noexcept
 {
-    BallType generated = static_cast<BallType>(rand() % 3);
-    lastDrop = SDL_GetTicks();
+    // Don't call SDL_glGetTicks() since this can lead to one ms difference
+    // and thus integer overflow
+    lastDrop = currentTime;
+    queueUpdated = false;
 
     // dropperX is defined as clamp(mouseX, LEFT_BORDER_X, RIGHT_BORDER_X)
     addBall((float) dropperX, (float) dropperY, currentBall);
-
-    currentBall = nextBall;
-    nextBall = generated;
 }
 
 void Game::addBall(Ball * ball)
@@ -284,7 +291,8 @@ void Game::pollEvents() noexcept
         if (event.type == SDL_MOUSEMOTION || event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP)
         {
             SDL_GetMouseState(&mouseX, &mouseY);
-            dropperX = clamp(mouseX, (int) (LEFT_BORDER_X + ballTypeToRadius[currentBall]), (int) (RIGHT_BORDER_X - ballTypeToRadius[currentBall]));
+            if(!_paused)
+                dropperX = clamp(mouseX, (int) (LEFT_BORDER_X + ballTypeToRadius[currentBall]), (int) (RIGHT_BORDER_X - ballTypeToRadius[currentBall]));
         }
 
         switch (event.type) {

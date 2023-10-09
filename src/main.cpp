@@ -20,6 +20,9 @@ int main(int argc, char *argv[])
                                        SDL_WINDOWPOS_CENTERED,
                                        800, 800, 0);
  
+    SDL_SetWindowMouseGrab(win, SDL_TRUE);
+    SDL_ShowCursor(SDL_DISABLE);
+
     Uint32 render_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
     SDL_Renderer* rend = SDL_CreateRenderer(win, -1, render_flags);
     bool close = false;
