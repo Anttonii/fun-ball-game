@@ -17,7 +17,7 @@ bool Game::init()
     ballTextures = loadAllBallTextures(app->getRenderer());
     if (!ballTextures)
     {
-        std::cout << "Unable to initialize." << std::endl;
+        std::cout << "Unable to initialize game, failed to load ball textures." << std::endl;
         return false;
     }
 
@@ -52,6 +52,22 @@ void Game::startGame() noexcept
     app->hideMouse(true);
 }
 
+void Game::restartGame() noexcept
+{
+    currentBall = BallType::WHITE;
+    nextBall = BallType::WHITE;
+    lastDrop = -DROP_DELAY;
+
+    for(int i = 0; i < balls.size(); i++)
+    {
+        delete balls[i];
+    }
+    balls.clear();
+
+    score = 0;
+    updateScoreText();
+}
+
 /// @brief Handles tick updates, keeps rendering and physics in sync.
 void Game::update()
 {
@@ -59,6 +75,7 @@ void Game::update()
     {
         world.Step(TIME_STEP, 8, 3);
 
+        checkState();
         clearBodies();
         
         if(app->getCurrentTime() - lastDrop >= DROP_DELAY && !queueUpdated)
@@ -76,6 +93,7 @@ void Game::update()
             int ballType = ballsToAdd[i].ballType;
             addBall(x, y, static_cast<BallType>(ballType));
         }
+
         ballsToAdd.clear();
 
         for(int i = 0; i < balls.size(); i++)
@@ -193,6 +211,25 @@ void Game::dropBall() noexcept
     addBall((float) dropperX, (float) dropperY, currentBall);
 }
 
+void Game::checkState() noexcept
+{
+    // iterate over all balls, check if their y-position + radius is higher
+    // game boards max y
+    b2Body * body = world.GetBodyList();
+
+    for( ; body; body = body->GetNext())
+    {
+        uintptr_t userData = body->GetUserData().pointer;
+        if(userData != 0)
+        {
+            UserDataFlags * flags = (UserDataFlags *) body->GetUserData().pointer;
+            float position = (body->GetPosition().y - flags->radius) * PIXEL_CONVERSION;
+            if(flags->isAlive && flags->hasCollided && position < GAME_BOX_TOP)
+                restartGame();
+        }
+    };
+}
+
 void Game::addBall(Ball * ball)
 {
     balls.push_back(ball);
@@ -293,6 +330,9 @@ void Game::pollEvents()
             case SDL_SCANCODE_C:
                 app->toggleMouse();
                 break;
+            case SDL_SCANCODE_R:
+                restartGame();
+                break;
             case SDL_SCANCODE_P:
                 if (!paused)
                     pauseDifference = app->getCurrentTime() - lastDrop;
@@ -354,6 +394,9 @@ void BallContactListener::BeginContact(b2Contact* contact)
 
         UserDataFlags * userDataA = (UserDataFlags*) bodyA->GetUserData().pointer;
         UserDataFlags * userDataB = (UserDataFlags*) bodyB->GetUserData().pointer;
+
+        if(!userDataA->hasCollided) userDataA->hasCollided = true;
+        if(!userDataB->hasCollided) userDataB->hasCollided = true;
 
         if (btA == btB && btA != BallType::BLACK && userDataA->isAlive && userDataB->isAlive) 
         {

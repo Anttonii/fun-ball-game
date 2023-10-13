@@ -30,6 +30,7 @@
 
 #define GAME_BOX_HEIGHT 600.0f
 #define GAME_BOX_WIDTH 500.0f
+#define GAME_BOX_TOP (BOTTOM_EDGE_Y - GAME_BOX_HEIGHT)
 
 #define SCORE_TEXT_X 50
 #define SCORE_TEXT_Y 710
@@ -133,6 +134,11 @@ class Game : public Scene
 
         void addEdge(float x, float y, float width, float height) noexcept;
 
+        /// Checks the game state, has the player won or lost?
+        void checkState() noexcept;
+
+        void restartGame() noexcept;
+
         // drop a ball from the dropper
         void dropBall() noexcept;
 
@@ -144,6 +150,8 @@ class Game : public Scene
         // Removes a ball and destroys it with given body
         bool removeBall(b2Body * body) noexcept;
 
+        // Removes b2Bodies that are no longer needed
+        // called after balls combine.
         void clearBodies() noexcept;
         
         Application * app;

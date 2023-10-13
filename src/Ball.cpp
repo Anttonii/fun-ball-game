@@ -5,6 +5,7 @@ Ball::Ball(float _x, float _y, BallType type, b2World * world, b2Vec2 initialVel
 {
     _userData = std::make_unique<UserDataFlags>();
     _userData->isAlive = true;
+    _userData->radius = _radius / PIXEL_CONVERSION;
 
     _bodyDef.type = b2_dynamicBody;
     _bodyDef.position.Set(x / PIXEL_CONVERSION, y / PIXEL_CONVERSION);

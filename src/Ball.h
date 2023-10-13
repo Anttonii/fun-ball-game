@@ -79,7 +79,12 @@ static float ballTypeToDensity[TOTAL_TYPES] = {
 // user data to be passed onto box2d objects
 struct UserDataFlags
 {
+    // whether or not the body should remain to be updated
     bool isAlive {};
+    // whether or not the body has collided once
+    bool hasCollided {};
+    // the radius of the body
+    float radius {};
 };
 
 class Ball
@@ -95,8 +100,6 @@ class Ball
         float x, y;
         float angle;
     private:
-        void init(float x, float y, BallType type, b2World * world, b2Vec2 initialVelocity);
-
         float _radius;
         // determines whether or not the object is handled by the physics engine
         bool _suspended;
