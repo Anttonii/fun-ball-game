@@ -1,5 +1,6 @@
 #include "Application.h"
 #include "Game.h"
+#include "Mainmenu.h"
 
 #include <iostream>
 
@@ -9,13 +10,12 @@ int main(int argc, char *argv[])
     application->initApplication(WINDOW_HIDDEN);
     
     Game * game = new Game(application);
-    if(!game->init())
-    {
-        application->setShouldClose(true);
-    }
-    game->startGame();
+    MainMenu * menu = new MainMenu(application);
+
+    application->registerScene(game, GAME_SCENE);
+    application->registerScene(menu, MAINMENU_SCENE);
     
-    application->setCurrentScene(game);
+    application->setCurrentScene(menu);
     while (application->isRunning()) {
         application->tick();
     }

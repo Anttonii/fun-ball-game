@@ -1,6 +1,8 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include "SDL.h"
+
 // defines the pixel conversion rate when doing calculations with box2d
 // 1 unit in box2d => 15 pixels and vice versa.
 #define PIXEL_CONVERSION 50.0f
@@ -14,6 +16,24 @@ static const int clamp(int val, int min, int max)
     if(val < min) return min;
     else if (val > max) return max;
     else return val;
+}
+
+static bool inline isInBounds(int x, int y, SDL_Rect rect)
+{
+    return x >= rect.x && x <= rect.x + rect.w &&
+            y >= rect.y && y <= rect.y + rect.h;
+};
+
+static void drawRect(SDL_Renderer * renderer, int x, int y, int w, int h, Uint8 r, Uint8 g, Uint8 b, Uint8 a)
+{
+    Uint8 ored, ogre, oblu, oalp; // the original colors
+    SDL_GetRenderDrawColor(renderer, &ored, &ogre, &oblu, &oalp);
+    SDL_SetRenderDrawColor(renderer, r, g, b, a);
+    SDL_RenderDrawLine(renderer, x, y, x + w, y);
+    SDL_RenderDrawLine(renderer, x, y, x, y + h);
+    SDL_RenderDrawLine(renderer, x, y + h, x + w, y + h);
+    SDL_RenderDrawLine(renderer, x + w, y, x + w, y + h);
+    SDL_SetRenderDrawColor(renderer, ored, ogre, oblu, oalp);
 }
 
 #endif

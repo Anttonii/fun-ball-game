@@ -27,6 +27,7 @@ bool Game::init()
     
     // generate a seed
     srand(time(NULL));
+    startGame();
 
     return true;
 }
@@ -42,8 +43,8 @@ void Game::startGame() noexcept
     addEdge(RIGHT_BORDER_X, RIGHT_BORDER_Y, 0.0f, GAME_BOX_HEIGHT); // right edge
     addEdge(BOTTOM_EDGE_X, BOTTOM_EDGE_Y, GAME_BOX_WIDTH, 0.0f); // bottom edge
     
-    scoreTextObject.createText(app->getRenderer(), 36, SCORE_TEXT_X, SCORE_TEXT_Y, "Score: ", "./assets/fonts/IBM_VGA.ttf");
-    nextBallTextObject.createText(app->getRenderer(), 36, NEXT_BALL_TEXT_X, NEXT_BALL_TEXT_Y, "Next:", "./assets/fonts/IBM_VGA.ttf");
+    scoreTextObject.createText(app->getRenderer(), 36, SCORE_TEXT_X, SCORE_TEXT_Y, "Score: ", SCOREFONT_PATH);
+    nextBallTextObject.createText(app->getRenderer(), 36, NEXT_BALL_TEXT_X, NEXT_BALL_TEXT_Y, "Next:", SCOREFONT_PATH);
     updateScoreText();
 
     app->show();
@@ -142,12 +143,7 @@ void Game::render(SDL_Renderer * renderer)
     SDL_RenderCopyEx(renderer, ballTextures[nextBall].inner, NULL, &nextBallQuad, 0.0, NULL, SDL_FLIP_NONE);
     
     // Draws the square around next ball
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    SDL_RenderDrawLine(renderer, 620, 110, 720, 110);
-    SDL_RenderDrawLine(renderer, 620, 110, 620, 210);
-    SDL_RenderDrawLine(renderer, 620, 210, 720, 210);
-    SDL_RenderDrawLine(renderer, 720, 110, 720, 210);
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    drawRect(renderer, 620, 110, 100, 100, 255, 255, 255, 255);
     
     for(int i = 0; i < balls.size(); i++)
     {
@@ -163,13 +159,12 @@ void Game::render(SDL_Renderer * renderer)
 
     scoreTextObject.renderText();
     nextBallTextObject.renderText();
-
-    SDL_RenderPresent(renderer);
 }
 
 void Game::cleanUp()
 {
-
+    scoreTextObject.destroyText();
+    nextBallTextObject.destroyText();
 }
 
 void Game::clearBodies() noexcept

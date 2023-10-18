@@ -7,24 +7,13 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 
-
-static TTF_Font * SCORE_FONT()
-{
-    TTF_Font * font = TTF_OpenFont("./assets/fonts/IBM_VGA.ttf", 36);
-    if (!font)
-    {
-        std::cout << "Unable to find font for score!" << std::endl;
-    }
-    return font;
-}
+static const char * MENUFONT_PATH = "./assets/fonts/IBM_VGA.ttf";
+static const char * SCOREFONT_PATH = "./assets/fonts/IBM_VGA.ttf";
 
 // Represents a renderable text object
 class TextObject
 {
     private:
-        int x;
-        int y;
-
         SDL_Rect quad;
         SDL_Texture * texture;
         SDL_Renderer * renderer;
@@ -33,16 +22,24 @@ class TextObject
     public:
         void createText(SDL_Renderer * _renderer, int fs, int _x, int _y, std::string text, const char * fPath)
         {
-            x = _x;
-            y = _y;
+            TTF_Font * _font = TTF_OpenFont(fPath, fs);
+            if(_font == NULL)
+            {
+                std::cout << "Failed to initialize font with path: " << fPath << std::endl;
+                return;
+            }
+            this->createText(_renderer, _x, _y, text, _font);
+        }
+
+        void createText(SDL_Renderer * _renderer, int _x, int _y, std::string& text, TTF_Font * _font)
+        {
             renderer = _renderer;
-            
-            font = TTF_OpenFont(fPath, 36);
+            font = _font;
 
             SDL_Surface * textSurface = TTF_RenderText_Solid(font, text.c_str(), { 255, 255, 255, 255 });
 
             texture = SDL_CreateTextureFromSurface(renderer, textSurface);
-            quad = { x, y, textSurface->w, textSurface->h };
+            quad = { _x, _y, textSurface->w, textSurface->h };
             
             SDL_FreeSurface(textSurface);
         };
@@ -51,15 +48,33 @@ class TextObject
         {
             SDL_Surface * textSurface = TTF_RenderText_Solid(font, text.c_str(), { 255, 255, 255, 255 });
 
+            SDL_DestroyTexture(texture);
             texture = SDL_CreateTextureFromSurface(renderer, textSurface);
-            quad = { x, y, textSurface->w, textSurface->h };
+            quad = { quad.x, quad.y, textSurface->w, textSurface->h };
             
             SDL_FreeSurface(textSurface);
+        }
+
+        void setPosition(int _x, int _y)
+        {
+            quad.x = _x;
+            quad.y = _y;
+        }
+
+        SDL_Rect& getBounds()
+        {
+            return this->quad;
         }
 
         void renderText()
         {
             SDL_RenderCopy(renderer, texture, NULL, &quad);
+        }
+
+        void destroyText()
+        {
+            TTF_CloseFont(font);
+            SDL_DestroyTexture(texture);
         }
 };
 

@@ -13,6 +13,7 @@ class Scene
         virtual void pollEvents() = 0;
         virtual void update() = 0;
         virtual void cleanUp() = 0;
+        virtual bool init() = 0;
 };
 
 #endif

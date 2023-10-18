@@ -7,11 +7,13 @@ Application::Application(const char * _title, int _width, int _height)
 
 Application::~Application()
 {
+    free(scenes);
     destroyApplication();
 }
 
 void Application::destroyApplication()
 {
+    TTF_Quit();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
@@ -22,7 +24,8 @@ void Application::destroyApplication()
 void Application::initApplication(Uint32 flags)
 {
     // Init SDL.
-    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
+    {
         printf("error initializing SDL: %s\n", SDL_GetError());
     }
 
@@ -32,7 +35,8 @@ void Application::initApplication(Uint32 flags)
                                        SDL_WINDOWPOS_CENTERED,
                                        width, height, flags);
 
-    if (win == NULL) {
+    if (win == NULL) 
+    {
         printf("error initializing window: %s\n", SDL_GetError());
     }
 
@@ -40,20 +44,22 @@ void Application::initApplication(Uint32 flags)
     Uint32 render_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
     SDL_Renderer* rend = SDL_CreateRenderer(win, -1, render_flags);
 
-    if (rend == NULL) {
-        printf("error initializing renderer: %s\n", SDL_GetError());
+    if (rend == NULL) 
+    {
+        std::cout << "Error initializing renderer: "  << SDL_GetError() << std::endl;
     }
 
     // Initialize font engine
     int ttf = TTF_Init();
     if (ttf != 0)
     {
-        printf("error initializing sdl_ttf: %s\n", SDL_GetError());
+        std::cout << "Error initializing sdl_ttf: " << SDL_GetError() << std::endl;
     }
 
     window = win;
     renderer = rend;
     _isRunning = true;
+    scenes = (Scene**) malloc(sizeof(Scene*) * 10);
 }
 
 void Application::tick()
@@ -70,6 +76,7 @@ void Application::tick()
     currentScene->pollEvents();
     currentScene->update();
     currentScene->render(renderer);
+    SDL_RenderPresent(renderer);
 
     getFrameEvents().clear();
 
@@ -98,7 +105,20 @@ void Application::setCurrentScene(Scene * scene)
         currentScene->cleanUp();
         currentScene = NULL;
     }
+
+    // TODO: Implement better error checking
+    if(!scene->init())
+    {
+        std::cout << "Failed to initialize new scene!" << std::endl;
+        this->setShouldClose(true);
+    } 
+    
     currentScene = scene;
+}
+
+void Application::setCurrentSceneById(Uint8 id)
+{
+    setCurrentScene(scenes[id]);
 }
 
 // Both grabs and hides the mouse depending on the current state.
