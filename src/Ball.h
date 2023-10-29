@@ -23,7 +23,7 @@ static const double DENSITY_MULTIPLIER = 1.16;
 static const int TOTAL_TYPES = 10;
 
 // determines the color and size of a ball
-enum BallType
+enum BallType : unsigned int
 {
     WHITE  = 0,
     RED    = 1,

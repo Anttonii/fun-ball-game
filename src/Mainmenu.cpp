@@ -14,13 +14,9 @@ bool MainMenu::init()
     hiscoresButtonText.createText(app->getRenderer(), 36, 0, 0, "Hiscores", MENUFONT_PATH);
     quitButtonText.createText(app->getRenderer(), 36, 0, 0, "Quit", MENUFONT_PATH);
 
-    SDL_Rect playButtonRect = playButtonText.getBounds();
-    SDL_Rect quitButtonRect = quitButtonText.getBounds();
-    SDL_Rect hiscoresButtonRect = hiscoresButtonText.getBounds();
-
-    playButtonText.setPosition(app->getWidth() / 2 - playButtonRect.w / 2, 100);
-    hiscoresButtonText.setPosition(app->getWidth() / 2 - hiscoresButtonRect.w / 2, 150);
-    quitButtonText.setPosition(app->getWidth() / 2 - quitButtonRect.w / 2, 200);
+    playButtonText.setPositionCenter(app->getWidth() / 2, 100);
+    hiscoresButtonText.setPositionCenter(app->getWidth() / 2, 150);
+    quitButtonText.setPositionCenter(app->getWidth() / 2, 200);
 
     app->show();
 
@@ -65,6 +61,7 @@ void MainMenu::cleanUp()
 {
     playButtonText.destroyText();
     quitButtonText.destroyText();
+    hiscoresButtonText.destroyText();
 }
 
 void MainMenu::update()

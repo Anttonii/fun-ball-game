@@ -25,15 +25,6 @@ bool Game::init()
     contactListener = new BallContactListener(this, &world);
     paused = false;
     
-    // generate a seed
-    srand(time(NULL));
-    startGame();
-
-    return true;
-}
-
-void Game::startGame() noexcept
-{
     // start every game with 2 white balls
     currentBall = BallType::WHITE;
     nextBall = BallType::WHITE;
@@ -45,12 +36,17 @@ void Game::startGame() noexcept
     
     scoreTextObject.createText(app->getRenderer(), 36, SCORE_TEXT_X, SCORE_TEXT_Y, "Score: ", SCOREFONT_PATH);
     nextBallTextObject.createText(app->getRenderer(), 36, NEXT_BALL_TEXT_X, NEXT_BALL_TEXT_Y, "Next:", SCOREFONT_PATH);
+    pauseTextObject.createText(app->getRenderer(), 36, 0, 0, "Paused", SCOREFONT_PATH);
+    pauseTextObject.setPositionCenter(app->getWidth() / 2, app->getHeight() / 2 - 200);
     updateScoreText();
 
-    app->show();
+    // generate a seed
+    srand(time(NULL));
 
-    app->grabMouse(true);
-    app->hideMouse(true);
+    app->show();
+    setMouseState(true);
+
+    return true;
 }
 
 void Game::restartGame() noexcept
@@ -111,6 +107,13 @@ void Game::update()
 void Game::render(SDL_Renderer * renderer)
 {
     SDL_RenderClear(renderer);
+
+    if(paused)
+    {
+        renderPauseScreen();
+        return;
+    }
+
     for(int i = 0; i < edges.size(); i++)
     {
         int x = (int) edges[i].x;
@@ -302,6 +305,28 @@ void Game::addBallToQueue(float x, float y, int ballType, b2Vec2 initialVelocity
     ballsToAdd.push_back(bqd);
 }
 
+void Game::togglePause() noexcept
+{
+    paused = !paused;
+
+    if(paused)
+    {
+        setMouseState(false);
+        scoreTextObject.setPositionCenter(app->getWidth() / 2, app->getHeight() / 2 - 160);
+    }
+    else
+    {
+        setMouseState(true);
+        scoreTextObject.setPosition(SCORE_TEXT_X, SCORE_TEXT_Y);
+    }
+}
+
+void Game::renderPauseScreen() noexcept
+{
+    scoreTextObject.renderText();
+    pauseTextObject.renderText();
+}
+
 void Game::updateScoreText()
 {
     auto format = "Score: %i";
@@ -310,6 +335,12 @@ void Game::updateScoreText()
     std::sprintf(&output[0], format, score);
     scoreText = output;
     scoreTextObject.updateText(scoreText);
+}
+
+void Game::setMouseState(bool state) noexcept
+{
+    app->grabMouse(state);
+    app->hideMouse(state);
 }
 
 void Game::pollEvents()
@@ -334,7 +365,7 @@ void Game::pollEvents()
                 else
                     lastDrop = app->getCurrentTime() - pauseDifference;
                 
-                paused = !paused;
+                togglePause();
                 break;
             /*case SDL_SCANCODE_KP_ENTER:
                 SDL_CaptureMouse(SDL_FALSE);

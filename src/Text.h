@@ -61,6 +61,11 @@ class TextObject
             quad.y = _y;
         }
 
+        void setPositionCenter(int _x, int _y)
+        {
+            setPosition(_x - quad.w / 2, _y);
+        }
+
         SDL_Rect& getBounds()
         {
             return this->quad;

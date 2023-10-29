@@ -14,6 +14,7 @@
 
 #define GAME_SCENE 0
 #define MAINMENU_SCENE 1
+#define LEADERBOARDS_SCENE 2
 
 // Application holds the key components of SDL window
 class Application

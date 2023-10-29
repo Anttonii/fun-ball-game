@@ -109,11 +109,8 @@ class Game : public Scene
         Game(Application * app);
         ~Game();
 
-        // Initializes dependencies and other things before starting a game.
+        // Initializes necessary game elements before starting
         bool init();
-
-        // Adds all the necessary components for a game to be played
-        void startGame() noexcept;
 
         // Returns a pointer to a ball from given b2Body
         // If none was found, returns NULL.
@@ -154,6 +151,15 @@ class Game : public Scene
         // called after balls combine.
         void clearBodies() noexcept;
         
+        // Pauses the game
+        void togglePause() noexcept;
+
+        // Renders a pause screen
+        void renderPauseScreen() noexcept;
+
+        // Toggles mouse state, grabbed and hidden when true
+        void setMouseState(bool state) noexcept;
+
         Application * app;
 
         b2BodyDef groundBodyDef;
@@ -186,6 +192,7 @@ class Game : public Scene
         std::string scoreText;
         TextObject scoreTextObject;
         TextObject nextBallTextObject;
+        TextObject pauseTextObject;
         
         // Represents state of the droppers queue
         // makes updating more intuitive, the next ball gets updated
