@@ -8,7 +8,7 @@
 #include "Utils.h"
 
 #include "SDL.h"
-#include "box2d/box2d.h"
+#include "box2d.h"
 
 #define BASE_RADIUS 25.0f
 #define BASE_DENSITY 0.3f

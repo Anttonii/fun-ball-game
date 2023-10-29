@@ -19,8 +19,38 @@ Makefiles and library linking is handled by CMake.
 
 ## Building
 
+### Building on Windows
+
 To build the game yourself you need to have installed the dependency libraries.
 The CMake lists file is currently built to work on a personal computer, so they might require tweaking.
+
+### Building on Mac OS X
+
+Start by installing the dependencies
+
+```
+brew install SDL2
+brew install SDL2_image
+brew install SDL2_ttf
+brew install Box2D
+```
+
+Generate the Unix makefiles and run make:
+
+```
+mkdir -p build
+cd build
+cmake -G "Unix Makefiles" ..
+make
+cd ..
+./bin/SuikaGame
+```
+
+or use build.sh in projects root directory.
+
+```
+sh build.sh
+```
 
 ## License
 

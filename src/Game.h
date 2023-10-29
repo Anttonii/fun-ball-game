@@ -10,7 +10,7 @@
 
 #include "SDL.h"
 
-#include "box2d/box2d.h"
+#include "box2d.h"
 
 #include "Application.h"
 #include "Ball.h"
