@@ -48,18 +48,6 @@ list (REMOVE_DUPLICATES P_INCLUDE_DIRS)
 add_executable(${PROJECT_NAME} ${SRC})
 target_include_directories(${PROJECT_NAME} PRIVATE ${P_INCLUDE_DIRS})
 
-if(WIN32)
-target_link_libraries(
-    ${PROJECT_NAME}
-        mingw32
-        ${SDL2_LIBRARIES}
-        ${SDL2_IMAGE_LIBRARIES}
-        ${SDL2_TTF_LIBRARIES}
-        ${BOX2D_LIBRARY}
-)
-endif(WIN32)
-
-if(APPLE)
 target_link_libraries(
     ${PROJECT_NAME}
         ${SDL2_LIBRARIES}
@@ -67,7 +55,6 @@ target_link_libraries(
         ${SDL2_TTF_LIBRARIES}
         ${BOX2D_LIBRARY}
 )
-endif(APPLE)
 
 message(STATUS "Copying all assets to destination folder...")
 file(
@@ -76,9 +63,7 @@ file(
 )
 
 message(STATUS "Copying all dependencies to destination folder...")
-file(GLOB PROJECT_DEPENDENCIES ${SDL2_LIBRARIES}/*.dll)
-file(GLOB PROJECT_DEPENDENCIES ${SDL2_IMAGE_LIBRARIES}/*.dll)
-file(GLOB PROJECT_DEPENDENCIES ${SDL2_TTF_LIBRARIES}/*.dll)
+file(GLOB PROJECT_DEPENDENCIES ${SDL2_DIR}/bin/*.dll)
 
 foreach(Dependency IN LISTS PROJECT_DEPENDENCIES)
     file(

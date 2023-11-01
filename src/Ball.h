@@ -17,7 +17,7 @@
 static const double RADIUS_MULTIPLIER = 1.26;
 
 // the density multiplier applied when balls change color
-static const double DENSITY_MULTIPLIER = 1.16;
+static const double DENSITY_MULTIPLIER = 1.14;
 
 // total amount of different ball sizes
 static const int TOTAL_TYPES = 10;
@@ -96,6 +96,10 @@ class Ball
         inline BallType getType() noexcept { return _type; };
         inline float getRadius() noexcept { return _radius; };
         inline b2Body * getBody() noexcept { return _body; };
+        inline float getDensity() noexcept { return ballTypeToDensity[_type]; };
+        
+        // Applys an impulse to the balls center of mass
+        void applyImpulse(b2Vec2 direction) noexcept;
         
         float x, y;
         float angle;

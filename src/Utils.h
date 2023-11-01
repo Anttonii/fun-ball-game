@@ -3,6 +3,9 @@
 
 #include "SDL.h"
 
+#include <math.h>
+#include <iostream>
+
 // defines the pixel conversion rate when doing calculations with box2d
 // 1 unit in box2d => 15 pixels and vice versa.
 #define PIXEL_CONVERSION 50.0f
@@ -34,6 +37,12 @@ static void drawRect(SDL_Renderer * renderer, int x, int y, int w, int h, Uint8 
     SDL_RenderDrawLine(renderer, x, y + h, x + w, y + h);
     SDL_RenderDrawLine(renderer, x + w, y, x + w, y + h);
     SDL_SetRenderDrawColor(renderer, ored, ogre, oblu, oalp);
+}
+
+static bool circlesOverlap(float x, float y, float r, float x2, float y2, float r2)
+{
+    float dist = (float) sqrt(pow(abs(x-x2), 2) + pow(abs(y-y2), 2));
+    return dist <= r + r2;
 }
 
 #endif

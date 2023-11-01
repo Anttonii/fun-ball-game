@@ -2,8 +2,6 @@
 #include "Game.h"
 #include "Mainmenu.h"
 
-#include <iostream>
-
 int main(int argc, char *argv[])
 {
     Application * application = new Application("Suika Game", 800, 800);

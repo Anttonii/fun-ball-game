@@ -12,8 +12,6 @@ Ball::Ball(float _x, float _y, BallType type, b2World * world, b2Vec2 initialVel
     _body = _world->CreateBody(&_bodyDef);
     _body->GetUserData().pointer = reinterpret_cast<uintptr_t>(_userData.get());
 
-    // TODO: Fix this force application
-    _body->ApplyLinearImpulseToCenter(b2Vec2(initialVelocity.x * 10.0f, initialVelocity.y * 10.0f), true);
 
     b2CircleShape circleShape;
     circleShape.m_radius = _radius / PIXEL_CONVERSION;
@@ -23,9 +21,16 @@ Ball::Ball(float _x, float _y, BallType type, b2World * world, b2Vec2 initialVel
     fixtureDef.density = ballTypeToDensity[type];
     fixtureDef.friction = 0.2f;
     _body->CreateFixture(&fixtureDef);
+
+    applyImpulse(initialVelocity);
 }
 
 Ball::~Ball()
 {
     _world->DestroyBody(_body); 
+}
+
+void Ball::applyImpulse(b2Vec2 direction) noexcept
+{
+    _body->ApplyLinearImpulse(direction, _body->GetWorldCenter(), true);
 }

@@ -20,13 +20,13 @@
 #include "Scene.h"
 
 #define LEFT_BORDER_X 50.0f
-#define LEFT_BORDER_Y 50.0f
+#define LEFT_BORDER_Y 70.0f
 
 #define RIGHT_BORDER_X 550.0f
-#define RIGHT_BORDER_Y 50.0f
+#define RIGHT_BORDER_Y 70.0f
 
 #define BOTTOM_EDGE_X 50.0f
-#define BOTTOM_EDGE_Y 650.0f
+#define BOTTOM_EDGE_Y 670.0f
 
 #define GAME_BOX_HEIGHT 600.0f
 #define GAME_BOX_WIDTH 500.0f
@@ -97,8 +97,9 @@ class BallContactListener : public b2ContactListener
         ~BallContactListener();
 
         void BeginContact(b2Contact * contact);
-        //void PreSolve(b2Contact* contact, const b2Manifold* oldManifold);
     private:
+        void applyForce(float x, float y, float radius) noexcept;
+
         Game * game;
         b2World * world;
 };
@@ -125,7 +126,9 @@ class Game : public Scene
         void update();
 
         void updateScoreText();
+
         inline void addScore(int _score) noexcept { score += _score; };
+        inline const std::vector<Ball*>& getBalls() const noexcept { return balls; };
     private:
         Game(const Game& game); // no copy constructor
 
@@ -188,6 +191,7 @@ class Game : public Scene
 
         BallType currentBall;
         BallType nextBall;
+        BallType nextBallAfter;
 
         std::string scoreText;
         TextObject scoreTextObject;
