@@ -77,14 +77,6 @@ struct Edge
     b2FixtureDef * fixture;
 };
 
-struct BallQueueData
-{
-    float x;
-    float y;
-    int ballType;
-    b2Vec2 initialVelocity;
-};
-
 // forward declaration for BallContactListener
 class Game;
 
@@ -117,8 +109,10 @@ class Game : public Scene
         // If none was found, returns NULL.
         Ball* getBallFromBody(b2Body * body) noexcept;
         
-        void addBallToQueue(float x, float y, int ballType, b2Vec2 initialVelocity) noexcept;
-        
+        // Adds to ball to queue, which then gets added
+        // after the next physics step has occured
+        void addBall(Ball * ball);
+
         // Virtual functions defined by scene.
         void render(SDL_Renderer * renderer);
         void pollEvents();
@@ -137,15 +131,11 @@ class Game : public Scene
         /// Checks the game state, has the player won or lost?
         void checkState() noexcept;
 
+        // Restarts the game to the initial state.
         void restartGame() noexcept;
 
         // drop a ball from the dropper
         void dropBall() noexcept;
-
-        // adds a ball to the game world
-        void addBall(Ball * ball);
-        void addBall(float x, float y, BallType type) noexcept;
-        void addBall(float x, float y, BallType type, b2Vec2 initialVelocity) noexcept;
 
         // Removes a ball and destroys it with given body
         bool removeBall(b2Body * body) noexcept;
@@ -163,6 +153,9 @@ class Game : public Scene
         // Toggles mouse state, grabbed and hidden when true
         void setMouseState(bool state) noexcept;
 
+        // Generates randomly the next balls
+        void generateNextBall() noexcept;
+
         Application * app;
 
         b2BodyDef groundBodyDef;
@@ -173,12 +166,12 @@ class Game : public Scene
         std::vector<Ball *> balls;
         std::vector<Edge> edges;
 
-        std::vector<BallQueueData> ballsToAdd;
+        std::vector<Ball *> ballsToAdd;
 
         int score = 0;
 
-        int dropperY = 70;
-        int dropperX = 300;
+        float dropperY = 70.0f;
+        float dropperX = 300.0f;
 
         bool paused;
         bool canDrop;
@@ -191,7 +184,6 @@ class Game : public Scene
 
         BallType currentBall;
         BallType nextBall;
-        BallType nextBallAfter;
 
         std::string scoreText;
         TextObject scoreTextObject;

@@ -28,7 +28,6 @@ bool Game::init()
     // start every game with 2 white balls and one red ball
     currentBall = BallType::WHITE;
     nextBall = BallType::WHITE;
-    nextBallAfter = BallType::RED;
 
     // Add edges of the playing board to the screen
     addEdge(LEFT_BORDER_X, LEFT_BORDER_Y, 0.0f, GAME_BOX_HEIGHT);  // left edge
@@ -78,21 +77,12 @@ void Game::update()
     clearBodies();
     
     if(app->getCurrentTime() - lastDrop >= DROP_DELAY && !queueUpdated)
-    {
-        BallType generated = static_cast<BallType>(rand() % 3);
-        currentBall = nextBall;
-        nextBall = nextBallAfter;
-        nextBallAfter = generated;
-        queueUpdated = true;
-    }
+        generateNextBall();
     
     for(int i = 0; i < ballsToAdd.size(); i++)
     {
-        float x = ballsToAdd[i].x;
-        float y = ballsToAdd[i].y;
-        int ballType = ballsToAdd[i].ballType;
-        b2Vec2 velocity = ballsToAdd[i].initialVelocity;
-        addBall(x, y, static_cast<BallType>(ballType), velocity);
+        balls.push_back(ballsToAdd[i]);
+        ballsToAdd[i]->attachBody();
     }
 
     ballsToAdd.clear();
@@ -132,7 +122,7 @@ void Game::render(SDL_Renderer * renderer)
 
     // render dropper ball
     // dropping is allowed only every 3 second, 
-    if (app->getCurrentTime() - lastDrop>= DROP_DELAY && queueUpdated)
+    if (app->getCurrentTime() - lastDrop >= DROP_DELAY && queueUpdated)
     {
         int radius = (int) ballTypeToRadius[currentBall];
         int diameter = radius * 2;
@@ -142,21 +132,14 @@ void Game::render(SDL_Renderer * renderer)
         SDL_RenderCopyEx(renderer,  ballTextures[currentBall].inner, NULL, &quad, 0.0, NULL, SDL_FLIP_NONE);
     }
 
-    int nextBallRadius = (int) ballTypeToRadius[nextBall];
+    int nextBallRadius = (int) ballTypeToRadius[BallType::RED];
     int nextBallDiameter = nextBallRadius * 2;
-    SDL_Rect nextBallQuad = { 670 - (int) ballTypeToRadius[nextBall], 160 - (int) ballTypeToRadius[nextBall],
+    SDL_Rect nextBallQuad = { 670 - (int) ballTypeToRadius[BallType::RED], 160 - (int) ballTypeToRadius[BallType::RED],
         nextBallDiameter, nextBallDiameter };
     SDL_RenderCopyEx(renderer, ballTextures[nextBall].inner, NULL, &nextBallQuad, 0.0, NULL, SDL_FLIP_NONE);
 
-    int nextBallAfterRadius = (int) ballTypeToRadius[nextBallAfter];
-    int nextBallAfterDiameter = nextBallAfterRadius * 2;
-    SDL_Rect nextBallAfterQuad = { 670 - (int) ballTypeToRadius[nextBallAfter], 280 - (int) ballTypeToRadius[nextBallAfter],
-        nextBallAfterDiameter, nextBallAfterDiameter };
-    SDL_RenderCopyEx(renderer, ballTextures[nextBallAfter].inner, NULL, &nextBallAfterQuad, 0.0, NULL, SDL_FLIP_NONE);
-
     // Draws the square around next ball
     drawRect(renderer, 620, 110, 100, 100, 255, 255, 255, 255);
-    drawRect(renderer, 620, 230, 100, 100, 255, 255, 255, 255);
     
     for(int i = 0; i < balls.size(); i++)
     {
@@ -214,9 +197,7 @@ void Game::dropBall() noexcept
 {
     lastDrop = app->getCurrentTime();
     queueUpdated = false;
-
-    // dropperX is defined as clamp(mouseX, LEFT_BORDER_X, RIGHT_BORDER_X)
-    addBall((float) dropperX, (float) dropperY, currentBall);
+    addBall(new Ball(dropperX, dropperY, currentBall, &world, b2Vec2_zero));
 }
 
 void Game::checkState() noexcept
@@ -239,18 +220,8 @@ void Game::checkState() noexcept
 }
 
 void Game::addBall(Ball * ball)
-{
-    balls.push_back(ball);
-}
-
-void Game::addBall(float x, float y, BallType type) noexcept
-{
-    addBall(x, y, type, b2Vec2_zero);
-}
-
-void Game::addBall(float x, float y, BallType type, b2Vec2 initialVelocity) noexcept
-{
-    balls.push_back(new Ball(x, y, type, &world, initialVelocity));
+{    
+    ballsToAdd.push_back(ball);
 }
 
 void Game::addEdge(float x, float y, float width, float height) noexcept
@@ -304,17 +275,6 @@ bool Game::removeBall(b2Body * body) noexcept
     return false;
 }
 
-void Game::addBallToQueue(float x, float y, int ballType, b2Vec2 initialVelocity) noexcept
-{
-    BallQueueData bqd;
-    bqd.x = x;
-    bqd.y = y;
-    bqd.ballType = ballType;
-    bqd.initialVelocity = initialVelocity;
-
-    ballsToAdd.push_back(bqd);
-}
-
 void Game::togglePause() noexcept
 {
     paused = !paused;
@@ -351,6 +311,19 @@ void Game::setMouseState(bool state) noexcept
 {
     app->grabMouse(state);
     app->hideMouse(state);
+}
+
+void Game::generateNextBall() noexcept
+{
+    // Refers to which balls can be generated
+    int ballPool = 3;
+    if(score >= 750) ballPool = 4;
+    if(score >= 2000) ballPool = 5;
+
+    BallType generated = static_cast<BallType>(rand() % ballPool);
+    currentBall = nextBall;
+    nextBall = generated;
+    queueUpdated = true;
 }
 
 void Game::pollEvents()
@@ -424,8 +397,8 @@ void BallContactListener::applyForce(float x, float y, float radius) noexcept
             float slope = (y2-y) / (x2-x);
             float angle = atan(slope);
 
-            b2Vec2 impulse(cos(angle), sin(angle));
-            impulse *= 1.5f;
+            b2Vec2 impulse(cos(angle), -sin(angle));
+            impulse *= std::min(4.0f, (4.0f / abs(impulse.x + impulse.y)));
             (*it)->applyImpulse(impulse);
         }
     }
@@ -476,7 +449,7 @@ void BallContactListener::BeginContact(b2Contact* contact)
         userDataB->isAlive = false;
 
         applyForce(x, y, radius);
-        game->addBallToQueue(x, y, btA + 1, velocitySum);
+        game->addBall(new Ball(x, y, static_cast<BallType>(btA + 1), world, velocitySum));
 
         // add the type of the ball times twice and for both balls to the score
         game->addScore((btA + 1) * 2 * 2);

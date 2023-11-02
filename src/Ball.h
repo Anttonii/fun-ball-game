@@ -38,16 +38,9 @@ enum BallType : unsigned int
 };
 
 static const char* ballTypeToString[TOTAL_TYPES] = {
-    "white",
-    "red",
-    "violet",
-    "orange",
-    "yellow",
-    "green",
-    "lime",
-    "pink",
-    "blue",
-    "black"
+    "white", "red", "violet",
+    "orange", "yellow", "green",
+    "lime", "pink", "blue", "black"
 };
 
 static float ballTypeToRadius[TOTAL_TYPES] = {
@@ -80,6 +73,8 @@ class Ball
         Ball(float _x, float _y, BallType type, b2World * world, b2Vec2 initialVelocity);
         ~Ball();
 
+        void attachBody() noexcept;
+
         inline BallType getType() noexcept { return _type; };
         inline float getRadius() noexcept { return _radius; };
         inline b2Body * getBody() noexcept { return _body; };
@@ -103,6 +98,8 @@ class Ball
         b2Body * _body;
         // Keep track of the world the ball is in.
         b2World * _world;
+
+        b2Vec2 initialVelocity;
 
         std::unique_ptr<UserDataFlags> _userData;
 };
