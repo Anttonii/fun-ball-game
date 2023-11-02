@@ -412,18 +412,20 @@ void BallContactListener::applyForce(float x, float y, float radius) noexcept
     std::vector<Ball*> balls = game->getBalls();
     for(std::vector<Ball*>::const_iterator it = balls.begin(); it != balls.end(); it++)
     {
+        UserDataFlags * userData = (UserDataFlags*) (*it)->getBody()->GetUserData().pointer;
+        if(!userData->isAlive) return;
+
         float x2 = (*it)->x;
         float y2 = (*it)->y;
         float r2 = (*it)->getRadius();
 
-        if(circlesOverlap(x, y, radius, x2, y2, r2))
+        if(circlesOverlap(x, y, radius + 1.5, x2, y2, r2))
         {
             float slope = (y2-y) / (x2-x);
             float angle = atan(slope);
-            float scalar = (*it)->getDensity();
 
             b2Vec2 impulse(cos(angle), sin(angle));
-            impulse *= scalar*2.0f;
+            impulse *= 1.5f;
             (*it)->applyImpulse(impulse);
         }
     }
@@ -439,46 +441,45 @@ void BallContactListener::BeginContact(b2Contact* contact)
 
     b2Vec2 point = worldManifold.points[0];
 
-    Ball* bodyARef = game->getBallFromBody(bodyA);
-    Ball* bodyBRef = game->getBallFromBody(bodyB);
+    Ball* ballA = game->getBallFromBody(bodyA);
+    Ball* ballB = game->getBallFromBody(bodyB);
 
-    if(bodyARef != NULL && bodyBRef != NULL) 
+    if(ballA == NULL || ballB == NULL) return;
+
+    const BallType btA = ballA->getType();
+    const BallType btB = ballB->getType();
+
+    UserDataFlags * userDataA = (UserDataFlags*) bodyA->GetUserData().pointer;
+    UserDataFlags * userDataB = (UserDataFlags*) bodyB->GetUserData().pointer;
+
+    if(!userDataA->hasCollided) userDataA->hasCollided = true;
+    if(!userDataB->hasCollided) userDataB->hasCollided = true;
+
+    if (btA == btB && btA != BallType::BLACK && userDataA->isAlive && userDataB->isAlive) 
     {
-        const BallType btA = bodyARef->getType();
-        const BallType btB = bodyBRef->getType();
+        b2Vec2 velocitySum = bodyA->GetLinearVelocity() + bodyB->GetLinearVelocity();
+        velocitySum *= 0.25f;
 
-        UserDataFlags * userDataA = (UserDataFlags*) bodyA->GetUserData().pointer;
-        UserDataFlags * userDataB = (UserDataFlags*) bodyB->GetUserData().pointer;
+        float x = point.x * PIXEL_CONVERSION;
+        float y = point.y * PIXEL_CONVERSION;
+        float radius = ballTypeToRadius[btA + 1];
 
-        if(!userDataA->hasCollided) userDataA->hasCollided = true;
-        if(!userDataB->hasCollided) userDataB->hasCollided = true;
+        if (y + radius > BOTTOM_EDGE_Y)
+            y -= y + radius - BOTTOM_EDGE_Y;
+        
+        if (x + radius > RIGHT_BORDER_X)
+            x -= x + radius - RIGHT_BORDER_X;
+        else if (x - radius < LEFT_BORDER_X)
+            x += LEFT_BORDER_X - (x - radius); 
 
-        if (btA == btB && btA != BallType::BLACK && userDataA->isAlive && userDataB->isAlive) 
-        {
-            b2Vec2 velocitySum = bodyA->GetLinearVelocity() + bodyB->GetLinearVelocity();
-            velocitySum *= 0.25f;
+        userDataA->isAlive = false;
+        userDataB->isAlive = false;
 
-            float x = point.x * PIXEL_CONVERSION;
-            float y = point.y * PIXEL_CONVERSION;
-            float radius = ballTypeToRadius[btA + 1];
+        applyForce(x, y, radius);
+        game->addBallToQueue(x, y, btA + 1, velocitySum);
 
-            if (y + radius > BOTTOM_EDGE_Y)
-                y -= y + radius - BOTTOM_EDGE_Y;
-            
-            if (x + radius > RIGHT_BORDER_X)
-                x -= x + radius - RIGHT_BORDER_X;
-            else if (x - radius < LEFT_BORDER_X)
-                x += LEFT_BORDER_X - (x - radius); 
-
-            userDataA->isAlive = false;
-            userDataB->isAlive = false;
-
-            applyForce(x, y, radius);
-            game->addBallToQueue(x, y, btA + 1, velocitySum);
-
-            // add the type of the ball times twice and for both balls to the score
-            game->addScore((btA + 1) * 2 * 2);
-            game->updateScoreText();
-        }
+        // add the type of the ball times twice and for both balls to the score
+        game->addScore((btA + 1) * 2 * 2);
+        game->updateScoreText();
     }
 }

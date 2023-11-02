@@ -18,7 +18,7 @@ Ball::Ball(float _x, float _y, BallType type, b2World * world, b2Vec2 initialVel
 
     b2FixtureDef fixtureDef;
     fixtureDef.shape = &circleShape;
-    fixtureDef.density = ballTypeToDensity[type];
+    fixtureDef.density = BASE_DENSITY;
     fixtureDef.friction = 0.2f;
     _body->CreateFixture(&fixtureDef);
 
@@ -28,9 +28,4 @@ Ball::Ball(float _x, float _y, BallType type, b2World * world, b2Vec2 initialVel
 Ball::~Ball()
 {
     _world->DestroyBody(_body); 
-}
-
-void Ball::applyImpulse(b2Vec2 direction) noexcept
-{
-    _body->ApplyLinearImpulse(direction, _body->GetWorldCenter(), true);
 }

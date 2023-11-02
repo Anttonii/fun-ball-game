@@ -17,7 +17,7 @@
 static const double RADIUS_MULTIPLIER = 1.26;
 
 // the density multiplier applied when balls change color
-static const double DENSITY_MULTIPLIER = 1.14;
+static const double DENSITY_MULTIPLIER = 1.05;
 
 // total amount of different ball sizes
 static const int TOTAL_TYPES = 10;
@@ -63,19 +63,6 @@ static float ballTypeToRadius[TOTAL_TYPES] = {
     BASE_RADIUS * (float) pow(RADIUS_MULTIPLIER, 9.0),
 };
 
-static float ballTypeToDensity[TOTAL_TYPES] = {
-    BASE_DENSITY,
-    BASE_DENSITY * (float) pow(DENSITY_MULTIPLIER, 1.0),
-    BASE_DENSITY * (float) pow(DENSITY_MULTIPLIER, 2.0),
-    BASE_DENSITY * (float) pow(DENSITY_MULTIPLIER, 3.0),
-    BASE_DENSITY * (float) pow(DENSITY_MULTIPLIER, 4.0),
-    BASE_DENSITY * (float) pow(DENSITY_MULTIPLIER, 5.0),
-    BASE_DENSITY * (float) pow(DENSITY_MULTIPLIER, 6.0),
-    BASE_DENSITY * (float) pow(DENSITY_MULTIPLIER, 7.0),
-    BASE_DENSITY * (float) pow(DENSITY_MULTIPLIER, 8.0),
-    BASE_DENSITY * (float) pow(DENSITY_MULTIPLIER, 9.0),
-};
-
 // user data to be passed onto box2d objects
 struct UserDataFlags
 {
@@ -96,10 +83,9 @@ class Ball
         inline BallType getType() noexcept { return _type; };
         inline float getRadius() noexcept { return _radius; };
         inline b2Body * getBody() noexcept { return _body; };
-        inline float getDensity() noexcept { return ballTypeToDensity[_type]; };
-        
+       
         // Applys an impulse to the balls center of mass
-        void applyImpulse(b2Vec2 direction) noexcept;
+        inline void applyImpulse(b2Vec2 direction) noexcept { _body->ApplyLinearImpulse(direction, _body->GetWorldCenter(), true); };
         
         float x, y;
         float angle;
