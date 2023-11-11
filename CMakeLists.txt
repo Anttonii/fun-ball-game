@@ -27,11 +27,13 @@ endif(APPLE)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
 find_package(SDL2_ttf REQUIRED)
+find_package(SDL2_mixer REQUIRED)
 
 include_directories(
     ${SDL2_INCLUDE_DIRS} 
     ${SDL2_IMAGE_INCLUDE_DIR}
     ${SDL2_TTF_INCLUDE_DIRS}
+    ${SDL2_MXIER_INCLUDE_DIRS}
     ${BOX2D_INCLUDE_DIR}
 )
 
@@ -53,6 +55,7 @@ target_link_libraries(
         ${SDL2_LIBRARIES}
         ${SDL2_IMAGE_LIBRARIES}
         ${SDL2_TTF_LIBRARIES}
+        ${SDL2_MIXER_LIBRARIES}
         ${BOX2D_LIBRARY}
 )
 

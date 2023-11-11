@@ -10,22 +10,22 @@
 
 class MainMenu : public Scene
 {
-    public:
-        MainMenu(Application * _app);
-        ~MainMenu();
+public:
+    MainMenu(Application *_app);
+    ~MainMenu();
 
-        void render(SDL_Renderer * renderer);
-        void pollEvents();
-        void cleanUp();
-        void update();
-        bool init();
+    void render(SDL_Renderer *renderer);
+    void pollEvents();
+    void cleanUp();
+    void update();
+    bool init();
 
-    private:
-        TextObject playButtonText;
-        TextObject quitButtonText;
-        TextObject hiscoresButtonText;
-        
-        Application * app;
+private:
+    TextObject playButtonText;
+    TextObject quitButtonText;
+    TextObject hiscoresButtonText;
+
+    Application *app;
 };
 
 #endif

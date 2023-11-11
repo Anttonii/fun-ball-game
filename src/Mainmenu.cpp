@@ -1,6 +1,6 @@
 #include "Mainmenu.h"
 
-MainMenu::MainMenu(Application * _app) : app(_app)
+MainMenu::MainMenu(Application *_app) : app(_app)
 {
 }
 
@@ -23,7 +23,7 @@ bool MainMenu::init()
     return true;
 }
 
-void MainMenu::render(SDL_Renderer * renderer)
+void MainMenu::render(SDL_Renderer *renderer)
 {
     playButtonText.renderText();
     hiscoresButtonText.renderText();
@@ -32,26 +32,26 @@ void MainMenu::render(SDL_Renderer * renderer)
 
 void MainMenu::pollEvents()
 {
-    for(SDL_Event event : app->getFrameEvents())
+    for (SDL_Event event : app->getFrameEvents())
     {
-        switch(event.type)
+        switch (event.type)
         {
-            case SDL_KEYDOWN:
-            switch(event.key.keysym.scancode)
+        case SDL_KEYDOWN:
+            switch (event.key.keysym.scancode)
             {
-                case SDL_SCANCODE_ESCAPE:
-                    app->setShouldClose(true);
-                    break;
+            case SDL_SCANCODE_ESCAPE:
+                app->setShouldClose(true);
+                break;
             }
-            case SDL_MOUSEBUTTONDOWN:
-            switch(event.button.button)
+        case SDL_MOUSEBUTTONDOWN:
+            switch (event.button.button)
             {
-                case SDL_BUTTON_LEFT:
-                    if(isInBounds(app->getMouseX(), app->getMouseY(), playButtonText.getBounds()))
-                        app->setCurrentSceneById(GAME_SCENE);
-                    else if(isInBounds(app->getMouseX(), app->getMouseY(), quitButtonText.getBounds()))
-                        app->setShouldClose(true);
-                    break;
+            case SDL_BUTTON_LEFT:
+                if (isInBounds(app->getMouseX(), app->getMouseY(), playButtonText.getBounds()))
+                    app->setCurrentSceneById(GAME_SCENE);
+                else if (isInBounds(app->getMouseX(), app->getMouseY(), quitButtonText.getBounds()))
+                    app->setShouldClose(true);
+                break;
             }
         }
     }
@@ -66,5 +66,4 @@ void MainMenu::cleanUp()
 
 void MainMenu::update()
 {
-
 }

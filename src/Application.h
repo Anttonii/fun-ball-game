@@ -7,6 +7,7 @@
 
 #include "SDL.h"
 #include "SDL_ttf.h"
+#include "SDL_mixer.h"
 
 #include "Scene.h"
 
@@ -19,65 +20,65 @@
 // Application holds the key components of SDL window
 class Application
 {
-    public:
-        Application(const char * _title, int _width, int _height);
-        ~Application();
+public:
+    Application(const char *_title, int _width, int _height);
+    ~Application();
 
-        void initApplication(Uint32 flags = 0);
-        void destroyApplication();
+    void initApplication(Uint32 flags = 0);
+    void destroyApplication();
 
-        void tick();
+    void tick();
 
-        void toggleMouse();
-        void grabMouse(bool state);
-        void hideMouse(bool state);
+    void toggleMouse();
+    void grabMouse(bool state);
+    void hideMouse(bool state);
 
-        inline void hide() noexcept { SDL_HideWindow(window); };
-        inline void show() noexcept { SDL_ShowWindow(window); };
+    inline void hide() noexcept { SDL_HideWindow(window); };
+    inline void show() noexcept { SDL_ShowWindow(window); };
 
-        inline void registerScene(Scene * scene, Uint8 id) noexcept { scenes[id] = scene; };
+    inline void registerScene(Scene *scene, Uint8 id) noexcept { scenes[id] = scene; };
 
-        inline SDL_Renderer * getRenderer() noexcept { return renderer; };
-        inline bool isRunning() const noexcept { return _isRunning; };
+    inline SDL_Renderer *getRenderer() noexcept { return renderer; };
+    inline bool isRunning() const noexcept { return _isRunning; };
 
-        void setCurrentScene(Scene * scene);
-        void setCurrentSceneById(Uint8 id);
-        
-        inline void setShouldClose(bool flag) noexcept { _isRunning = false; };
+    void setCurrentScene(Scene *scene);
+    void setCurrentSceneById(Uint8 id);
 
-        inline int getMouseX() const noexcept { return mouseX; };
-        inline int getMouseY() const noexcept { return mouseY; };
-        inline int getWidth() const noexcept { return width; };
-        inline int getHeight() const noexcept { return height; };
+    inline void setShouldClose(bool flag) noexcept { _isRunning = false; };
 
-        /// Returns the time since SDL context was created.
-        inline Uint32 getCurrentTime() const noexcept { return currentTime; };
+    inline int getMouseX() const noexcept { return mouseX; };
+    inline int getMouseY() const noexcept { return mouseY; };
+    inline int getWidth() const noexcept { return width; };
+    inline int getHeight() const noexcept { return height; };
 
-        std::vector<SDL_Event>& getFrameEvents()
-        {
-            static std::vector<SDL_Event> frame_events;
-            return frame_events;
-        }
+    /// Returns the time since SDL context was created.
+    inline Uint32 getCurrentTime() const noexcept { return currentTime; };
 
-    private:
-        void handleEvents();
+    std::vector<SDL_Event> &getFrameEvents()
+    {
+        static std::vector<SDL_Event> frame_events;
+        return frame_events;
+    }
 
-        SDL_Window * window;
-        SDL_Renderer * renderer;
-        Scene * currentScene = NULL;
+private:
+    void handleEvents();
 
-        std::string title;
-        int width, height;
-        bool _isRunning = false;
+    SDL_Window *window;
+    SDL_Renderer *renderer;
+    Scene *currentScene = NULL;
 
-        Uint32 currentTime;
-        int mouseX, mouseY;
+    std::string title;
+    int width, height;
+    bool _isRunning = false;
 
-        bool mouseHidden = false;
-        bool mouseGrabbed = false;
+    Uint32 currentTime;
+    int mouseX, mouseY;
 
-        Scene ** scenes;
-        Uint8 sceneID = 0;
+    bool mouseHidden = false;
+    bool mouseGrabbed = false;
+
+    Scene **scenes;
+    Uint8 sceneID = 0;
 };
 
 #endif

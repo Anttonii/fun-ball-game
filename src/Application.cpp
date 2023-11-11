@@ -1,12 +1,16 @@
 #include "Application.h"
 
-Application::Application(const char * _title, int _width, int _height)
+Application::Application(const char *_title, int _width, int _height)
     : title(_title), width(_width), height(_height)
 {
 }
 
 Application::~Application()
 {
+    for (int i = 0; i < 10; i++)
+    {
+        free(scenes[i]);
+    }
     free(scenes);
     destroyApplication();
 }
@@ -30,23 +34,23 @@ void Application::initApplication(Uint32 flags)
     }
 
     // Create window
-    SDL_Window* win = SDL_CreateWindow(title.c_str(),
+    SDL_Window *win = SDL_CreateWindow(title.c_str(),
                                        SDL_WINDOWPOS_CENTERED,
                                        SDL_WINDOWPOS_CENTERED,
                                        width, height, flags);
 
-    if (win == NULL) 
+    if (win == NULL)
     {
         printf("error initializing window: %s\n", SDL_GetError());
     }
 
     // Construct SDL renderer object
     Uint32 render_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
-    SDL_Renderer* rend = SDL_CreateRenderer(win, -1, render_flags);
+    SDL_Renderer *rend = SDL_CreateRenderer(win, -1, render_flags);
 
-    if (rend == NULL) 
+    if (rend == NULL)
     {
-        std::cout << "Error initializing renderer: "  << SDL_GetError() << std::endl;
+        std::cout << "Error initializing renderer: " << SDL_GetError() << std::endl;
     }
 
     // Initialize font engine
@@ -56,10 +60,20 @@ void Application::initApplication(Uint32 flags)
         std::cout << "Error initializing sdl_ttf: " << SDL_GetError() << std::endl;
     }
 
+    // Initialize SDL2_mixer
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == -1)
+    {
+        printf("SDL2_mixer could not be initialized!\n"
+               "SDL_Error: %s\n",
+               SDL_GetError());
+    }
+
+    Mix_AllocateChannels(16);
+
     window = win;
     renderer = rend;
     _isRunning = true;
-    scenes = (Scene**) malloc(sizeof(Scene*) * 10);
+    scenes = (Scene **)malloc(sizeof(Scene *) * 10);
 }
 
 void Application::tick()
@@ -67,7 +81,7 @@ void Application::tick()
     currentTime = SDL_GetTicks();
 
     SDL_Event event;
-    while(SDL_PollEvent(&event) != 0)
+    while (SDL_PollEvent(&event) != 0)
     {
         getFrameEvents().push_back(event);
     }
@@ -98,7 +112,7 @@ void Application::handleEvents()
     }
 }
 
-void Application::setCurrentScene(Scene * scene)
+void Application::setCurrentScene(Scene *scene)
 {
     if (currentScene != NULL)
     {
@@ -107,12 +121,12 @@ void Application::setCurrentScene(Scene * scene)
     }
 
     // TODO: Implement better error checking
-    if(!scene->init())
+    if (!scene->init())
     {
         std::cout << "Failed to initialize new scene!" << std::endl;
         this->setShouldClose(true);
-    } 
-    
+    }
+
     currentScene = scene;
 }
 
@@ -125,7 +139,7 @@ void Application::setCurrentSceneById(Uint8 id)
 void Application::toggleMouse()
 {
     SDL_SetWindowMouseGrab(window, mouseGrabbed ? SDL_FALSE : SDL_TRUE);
-    SDL_ShowCursor(mouseHidden ?  SDL_TRUE : SDL_FALSE);
+    SDL_ShowCursor(mouseHidden ? SDL_TRUE : SDL_FALSE);
 
     mouseGrabbed = !mouseGrabbed;
     mouseHidden = !mouseHidden;

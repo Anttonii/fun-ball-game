@@ -1,14 +1,14 @@
 #include "Game.h"
 
-Game::Game(Application * _app) : world(gravity), groundBodyDef(), balls(), 
-    app(_app), paused(true)
+Game::Game(Application *_app) : world(gravity), groundBodyDef(), balls(),
+                                app(_app), paused(true)
 {
     groundBodyDef.position.x = 0;
     groundBodyDef.position.y = -10.0;
-    b2Body * groundBody = world.CreateBody(&groundBodyDef);
+    b2Body *groundBody = world.CreateBody(&groundBodyDef);
 }
 
-Game::~Game() 
+Game::~Game()
 {
 }
 
@@ -24,21 +24,24 @@ bool Game::init()
     // create and register contact listener
     contactListener = new BallContactListener(this, &world);
     paused = false;
-    
+
     // start every game with 2 white balls and one red ball
     currentBall = BallType::WHITE;
     nextBall = BallType::WHITE;
 
     // Add edges of the playing board to the screen
-    addEdge(LEFT_BORDER_X, LEFT_BORDER_Y, 0.0f, GAME_BOX_HEIGHT);  // left edge
+    addEdge(LEFT_BORDER_X, LEFT_BORDER_Y, 0.0f, GAME_BOX_HEIGHT);   // left edge
     addEdge(RIGHT_BORDER_X, RIGHT_BORDER_Y, 0.0f, GAME_BOX_HEIGHT); // right edge
-    addEdge(BOTTOM_EDGE_X, BOTTOM_EDGE_Y, GAME_BOX_WIDTH, 0.0f); // bottom edge
-    
+    addEdge(BOTTOM_EDGE_X, BOTTOM_EDGE_Y, GAME_BOX_WIDTH, 0.0f);    // bottom edge
+
     scoreTextObject.createText(app->getRenderer(), 36, SCORE_TEXT_X, SCORE_TEXT_Y, "Score: ", SCOREFONT_PATH);
     nextBallTextObject.createText(app->getRenderer(), 36, NEXT_BALL_TEXT_X, NEXT_BALL_TEXT_Y, "Next:", SCOREFONT_PATH);
     pauseTextObject.createText(app->getRenderer(), 36, 0, 0, "Paused", SCOREFONT_PATH);
     pauseTextObject.setPositionCenter(app->getWidth() / 2, app->getHeight() / 2 - 200);
     updateScoreText();
+
+    popAudio = new Audio();
+    popAudio->init("pop.wav");
 
     // generate a seed
     srand(time(NULL));
@@ -55,10 +58,9 @@ void Game::restartGame() noexcept
     nextBall = BallType::WHITE;
     lastDrop = -DROP_DELAY;
 
-    for(int i = 0; i < balls.size(); i++)
-    {
+    for (int i = 0; i < balls.size(); i++)
         delete balls[i];
-    }
+
     balls.clear();
 
     score = 0;
@@ -68,18 +70,18 @@ void Game::restartGame() noexcept
 /// @brief Handles tick updates, keeps rendering and physics in sync.
 void Game::update()
 {
-    if(paused)
+    if (paused)
         return;
-    
+
     world.Step(TIME_STEP, 8, 3);
 
     checkState();
     clearBodies();
-    
-    if(app->getCurrentTime() - lastDrop >= DROP_DELAY && !queueUpdated)
+
+    if (app->getCurrentTime() - lastDrop >= DROP_DELAY && !queueUpdated)
         generateNextBall();
-    
-    for(int i = 0; i < ballsToAdd.size(); i++)
+
+    for (int i = 0; i < ballsToAdd.size(); i++)
     {
         balls.push_back(ballsToAdd[i]);
         ballsToAdd[i]->attachBody();
@@ -87,7 +89,7 @@ void Game::update()
 
     ballsToAdd.clear();
 
-    for(int i = 0; i < balls.size(); i++)
+    for (int i = 0; i < balls.size(); i++)
     {
         auto body = balls[i]->getBody();
         balls[i]->x += body->GetPosition().x * PIXEL_CONVERSION - balls[i]->x;
@@ -97,22 +99,22 @@ void Game::update()
 }
 
 /// @brief Renders game objects to the screen.
-void Game::render(SDL_Renderer * renderer)
+void Game::render(SDL_Renderer *renderer)
 {
     SDL_RenderClear(renderer);
 
-    if(paused)
+    if (paused)
     {
         renderPauseScreen();
         return;
     }
 
-    for(int i = 0; i < edges.size(); i++)
+    for (int i = 0; i < edges.size(); i++)
     {
-        int x = (int) edges[i].x;
-        int y = (int) edges[i].y;
-        int width = (int) edges[i].width;
-        int height = (int) edges[i].height;
+        int x = (int)edges[i].x;
+        int y = (int)edges[i].y;
+        int width = (int)edges[i].width;
+        int height = (int)edges[i].height;
 
         // Draw lines in white
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
@@ -121,35 +123,35 @@ void Game::render(SDL_Renderer * renderer)
     }
 
     // render dropper ball
-    // dropping is allowed only every 3 second, 
+    // dropping is allowed only every 3 second,
     if (app->getCurrentTime() - lastDrop >= DROP_DELAY && queueUpdated)
     {
-        int radius = (int) ballTypeToRadius[currentBall];
+        int radius = (int)ballTypeToRadius[currentBall];
         int diameter = radius * 2;
         int x = dropperX - radius;
         int y = dropperY - radius;
-        SDL_Rect quad = { x, y, diameter, diameter };
-        SDL_RenderCopyEx(renderer,  ballTextures[currentBall].inner, NULL, &quad, 0.0, NULL, SDL_FLIP_NONE);
+        SDL_Rect quad = {x, y, diameter, diameter};
+        SDL_RenderCopyEx(renderer, ballTextures[currentBall].inner, NULL, &quad, 0.0, NULL, SDL_FLIP_NONE);
     }
 
-    int nextBallRadius = (int) ballTypeToRadius[BallType::RED];
+    int nextBallRadius = (int)ballTypeToRadius[BallType::RED];
     int nextBallDiameter = nextBallRadius * 2;
-    SDL_Rect nextBallQuad = { 670 - (int) ballTypeToRadius[BallType::RED], 160 - (int) ballTypeToRadius[BallType::RED],
-        nextBallDiameter, nextBallDiameter };
+    SDL_Rect nextBallQuad = {670 - (int)ballTypeToRadius[BallType::RED], 160 - (int)ballTypeToRadius[BallType::RED],
+                             nextBallDiameter, nextBallDiameter};
     SDL_RenderCopyEx(renderer, ballTextures[nextBall].inner, NULL, &nextBallQuad, 0.0, NULL, SDL_FLIP_NONE);
 
     // Draws the square around next ball
     drawRect(renderer, 620, 110, 100, 100, 255, 255, 255, 255);
-    
-    for(int i = 0; i < balls.size(); i++)
+
+    for (int i = 0; i < balls.size(); i++)
     {
         float radius = balls[i]->getRadius();
-        int diameter = (int) radius * 2.0f;
-        int x = (int) balls[i]->x - radius;
-        int y = (int) balls[i]->y - radius;
-        double angle = (double) balls[i]->angle;
+        int diameter = (int)radius * 2.0f;
+        int x = (int)balls[i]->x - radius;
+        int y = (int)balls[i]->y - radius;
+        double angle = (double)balls[i]->angle;
         BallType type = balls[i]->getType();
-        SDL_Rect quad = { x, y, diameter, diameter };
+        SDL_Rect quad = {x, y, diameter, diameter};
         SDL_RenderCopyEx(renderer, ballTextures[type].inner, NULL, &quad, angle, NULL, SDL_FLIP_NONE);
     }
 
@@ -166,15 +168,15 @@ void Game::cleanUp()
 void Game::clearBodies() noexcept
 {
     std::vector<b2Body *> bodiesToRemove;
-    b2Body * body = world.GetBodyList();
+    b2Body *body = world.GetBodyList();
 
-    for( ; body; body = body->GetNext())
+    for (; body; body = body->GetNext())
     {
         uintptr_t userData = body->GetUserData().pointer;
-        if(userData != 0)
+        if (userData != 0)
         {
-            UserDataFlags * flags = (UserDataFlags *) body->GetUserData().pointer;
-            if(!flags->isAlive)
+            UserDataFlags *flags = (UserDataFlags *)body->GetUserData().pointer;
+            if (!flags->isAlive)
                 bodiesToRemove.push_back(body);
         }
     };
@@ -182,10 +184,11 @@ void Game::clearBodies() noexcept
     std::sort(bodiesToRemove.begin(), bodiesToRemove.end());
     unsigned int i = 0;
     unsigned int size = bodiesToRemove.size();
-    while(i < size) 
+    while (i < size)
     {
-        b2Body * b = bodiesToRemove[i++];
-        while(i < size && bodiesToRemove[i] == b) ++i;
+        b2Body *b = bodiesToRemove[i++];
+        while (i < size && bodiesToRemove[i] == b)
+            ++i;
         removeBall(b);
         b = 0;
     }
@@ -204,23 +207,23 @@ void Game::checkState() noexcept
 {
     // iterate over all balls, check if their y-position + radius is higher
     // game boards max y
-    b2Body * body = world.GetBodyList();
+    b2Body *body = world.GetBodyList();
 
-    for( ; body; body = body->GetNext())
+    for (; body; body = body->GetNext())
     {
         uintptr_t userData = body->GetUserData().pointer;
-        if(userData != 0)
+        if (userData != 0)
         {
-            UserDataFlags * flags = (UserDataFlags *) body->GetUserData().pointer;
+            UserDataFlags *flags = (UserDataFlags *)body->GetUserData().pointer;
             float position = (body->GetPosition().y - flags->radius) * PIXEL_CONVERSION;
-            if(flags->isAlive && flags->hasCollided && position < GAME_BOX_TOP)
+            if (flags->isAlive && flags->hasCollided && position < GAME_BOX_TOP)
                 restartGame();
         }
     };
 }
 
-void Game::addBall(Ball * ball)
-{    
+void Game::addBall(Ball *ball)
+{
     ballsToAdd.push_back(ball);
 }
 
@@ -232,27 +235,27 @@ void Game::addEdge(float x, float y, float width, float height) noexcept
     b2BodyDef bodyDef;
     bodyDef.type = b2_staticBody;
     bodyDef.position.Set((x + hWidth) / PIXEL_CONVERSION, (y + hHeight) / PIXEL_CONVERSION);
-    b2Body * body = world.CreateBody(&bodyDef);
+    b2Body *body = world.CreateBody(&bodyDef);
     b2EdgeShape shape;
 
     const b2Vec2 p1 = b2Vec2(-hWidth / PIXEL_CONVERSION, -hHeight / PIXEL_CONVERSION);
     const b2Vec2 p2 = b2Vec2(hWidth / PIXEL_CONVERSION, hHeight / PIXEL_CONVERSION);
-    shape.SetTwoSided(p1,p2);
+    shape.SetTwoSided(p1, p2);
 
     b2FixtureDef fixture;
     fixture.shape = &shape;
     fixture.friction = 1.0f;
     body->CreateFixture(&fixture);
 
-    Edge edge { x, y, width, height, body, bodyDef, &shape, &fixture };
+    Edge edge{x, y, width, height, body, bodyDef, &shape, &fixture};
     edges.push_back(edge);
 }
 
-Ball* Game::getBallFromBody(b2Body * body) noexcept
+Ball *Game::getBallFromBody(b2Body *body) noexcept
 {
-    for(int i = 0; i < balls.size(); i++)
+    for (int i = 0; i < balls.size(); i++)
     {
-        if(balls[i]->getBody() == body)
+        if (balls[i]->getBody() == body)
         {
             return balls[i];
         }
@@ -261,11 +264,11 @@ Ball* Game::getBallFromBody(b2Body * body) noexcept
     return NULL;
 }
 
-bool Game::removeBall(b2Body * body) noexcept
+bool Game::removeBall(b2Body *body) noexcept
 {
-    for(int i = 0; i < balls.size(); i++)
+    for (int i = 0; i < balls.size(); i++)
     {
-        if(balls[i]->getBody() == body)
+        if (balls[i]->getBody() == body)
         {
             delete balls[i];
             balls.erase(balls.begin() + i);
@@ -279,7 +282,7 @@ void Game::togglePause() noexcept
 {
     paused = !paused;
 
-    if(paused)
+    if (paused)
     {
         setMouseState(false);
         scoreTextObject.setPositionCenter(app->getWidth() / 2, app->getHeight() / 2 - 160);
@@ -317,8 +320,10 @@ void Game::generateNextBall() noexcept
 {
     // Refers to which balls can be generated
     int ballPool = 3;
-    if(score >= 750) ballPool = 4;
-    if(score >= 2000) ballPool = 5;
+    if (score >= 750)
+        ballPool = 4;
+    if (score >= 2000)
+        ballPool = 5;
 
     BallType generated = static_cast<BallType>(rand() % ballPool);
     currentBall = nextBall;
@@ -330,9 +335,11 @@ void Game::pollEvents()
 {
     for (SDL_Event event : app->getFrameEvents())
     {
-        switch (event.type) {
+        switch (event.type)
+        {
         case SDL_KEYDOWN:
-            switch (event.key.keysym.scancode) {
+            switch (event.key.keysym.scancode)
+            {
             case SDL_SCANCODE_ESCAPE:
                 app->setShouldClose(true);
                 break;
@@ -347,31 +354,30 @@ void Game::pollEvents()
                     pauseDifference = app->getCurrentTime() - lastDrop;
                 else
                     lastDrop = app->getCurrentTime() - pauseDifference;
-                
+
                 togglePause();
                 break;
             default:
                 break;
             }
         case SDL_MOUSEMOTION:
-            if(!paused)
-                dropperX = clamp(app->getMouseX(), (int) (LEFT_BORDER_X + ballTypeToRadius[currentBall]), (int) (RIGHT_BORDER_X - ballTypeToRadius[currentBall]));
+            if (!paused)
+                dropperX = clamp(app->getMouseX(), (int)(LEFT_BORDER_X + ballTypeToRadius[currentBall]), (int)(RIGHT_BORDER_X - ballTypeToRadius[currentBall]));
             break;
         case SDL_MOUSEBUTTONDOWN:
-            switch(event.button.button)
+            switch (event.button.button)
             {
             case SDL_BUTTON_LEFT:
-                if(app->getCurrentTime() - lastDrop >= DROP_DELAY && !paused)
+                if (app->getCurrentTime() - lastDrop >= DROP_DELAY && !paused)
                     dropBall();
                 break;
             }
             break;
         }
-
     }
 }
 
-BallContactListener::BallContactListener(Game * _game, b2World * _world) : game(_game), world(_world)
+BallContactListener::BallContactListener(Game *_game, b2World *_world) : game(_game), world(_world)
 {
     world->SetContactListener(this);
 }
@@ -382,19 +388,20 @@ BallContactListener::~BallContactListener()
 
 void BallContactListener::applyForce(float x, float y, float radius) noexcept
 {
-    std::vector<Ball*> balls = game->getBalls();
-    for(std::vector<Ball*>::const_iterator it = balls.begin(); it != balls.end(); it++)
+    std::vector<Ball *> balls = game->getBalls();
+    for (std::vector<Ball *>::const_iterator it = balls.begin(); it != balls.end(); it++)
     {
-        UserDataFlags * userData = (UserDataFlags*) (*it)->getBody()->GetUserData().pointer;
-        if(!userData->isAlive) return;
+        UserDataFlags *userData = (UserDataFlags *)(*it)->getBody()->GetUserData().pointer;
+        if (!userData->isAlive)
+            return;
 
         float x2 = (*it)->x;
         float y2 = (*it)->y;
         float r2 = (*it)->getRadius();
 
-        if(circlesOverlap(x, y, radius + 1.5, x2, y2, r2))
+        if (circlesOverlap(x, y, radius + 1.5, x2, y2, r2))
         {
-            float slope = (y2-y) / (x2-x);
+            float slope = (y2 - y) / (x2 - x);
             float angle = atan(slope);
 
             b2Vec2 impulse(cos(angle), -sin(angle));
@@ -404,31 +411,34 @@ void BallContactListener::applyForce(float x, float y, float radius) noexcept
     }
 }
 
-void BallContactListener::BeginContact(b2Contact* contact)
+void BallContactListener::BeginContact(b2Contact *contact)
 {
     b2WorldManifold worldManifold;
     contact->GetWorldManifold(&worldManifold);
-    
-    b2Body* bodyA = contact->GetFixtureA()->GetBody();
-    b2Body* bodyB = contact->GetFixtureB()->GetBody();
+
+    b2Body *bodyA = contact->GetFixtureA()->GetBody();
+    b2Body *bodyB = contact->GetFixtureB()->GetBody();
 
     b2Vec2 point = worldManifold.points[0];
 
-    Ball* ballA = game->getBallFromBody(bodyA);
-    Ball* ballB = game->getBallFromBody(bodyB);
+    Ball *ballA = game->getBallFromBody(bodyA);
+    Ball *ballB = game->getBallFromBody(bodyB);
 
-    if(ballA == NULL || ballB == NULL) return;
+    if (ballA == NULL || ballB == NULL)
+        return;
 
     const BallType btA = ballA->getType();
     const BallType btB = ballB->getType();
 
-    UserDataFlags * userDataA = (UserDataFlags*) bodyA->GetUserData().pointer;
-    UserDataFlags * userDataB = (UserDataFlags*) bodyB->GetUserData().pointer;
+    UserDataFlags *userDataA = (UserDataFlags *)bodyA->GetUserData().pointer;
+    UserDataFlags *userDataB = (UserDataFlags *)bodyB->GetUserData().pointer;
 
-    if(!userDataA->hasCollided) userDataA->hasCollided = true;
-    if(!userDataB->hasCollided) userDataB->hasCollided = true;
+    if (!userDataA->hasCollided)
+        userDataA->hasCollided = true;
+    if (!userDataB->hasCollided)
+        userDataB->hasCollided = true;
 
-    if (btA == btB && btA != BallType::BLACK && userDataA->isAlive && userDataB->isAlive) 
+    if (btA == btB && btA != BallType::BLACK && userDataA->isAlive && userDataB->isAlive)
     {
         b2Vec2 velocitySum = bodyA->GetLinearVelocity() + bodyB->GetLinearVelocity();
         velocitySum *= 0.25f;
@@ -439,17 +449,18 @@ void BallContactListener::BeginContact(b2Contact* contact)
 
         if (y + radius > BOTTOM_EDGE_Y)
             y -= y + radius - BOTTOM_EDGE_Y;
-        
+
         if (x + radius > RIGHT_BORDER_X)
             x -= x + radius - RIGHT_BORDER_X;
         else if (x - radius < LEFT_BORDER_X)
-            x += LEFT_BORDER_X - (x - radius); 
+            x += LEFT_BORDER_X - (x - radius);
 
         userDataA->isAlive = false;
         userDataB->isAlive = false;
 
         applyForce(x, y, radius);
         game->addBall(new Ball(x, y, static_cast<BallType>(btA + 1), world, velocitySum));
+        game->playPop();
 
         // add the type of the ball times twice and for both balls to the score
         game->addScore((btA + 1) * 2 * 2);

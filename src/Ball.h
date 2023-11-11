@@ -25,83 +25,83 @@ static const int TOTAL_TYPES = 10;
 // determines the color and size of a ball
 enum BallType : unsigned int
 {
-    WHITE  = 0,
-    RED    = 1,
+    WHITE = 0,
+    RED = 1,
     VIOLET = 2,
     ORANGE = 3,
     YELLOW = 4,
-    GREEN  = 5,
-    LIME   = 6,
-    PINK   = 7,
-    BLUE   = 8,
-    BLACK  = 9
+    GREEN = 5,
+    LIME = 6,
+    PINK = 7,
+    BLUE = 8,
+    BLACK = 9
 };
 
-static const char* ballTypeToString[TOTAL_TYPES] = {
+static const char *ballTypeToString[TOTAL_TYPES] = {
     "white", "red", "violet",
     "orange", "yellow", "green",
-    "lime", "pink", "blue", "black"
-};
+    "lime", "pink", "blue", "black"};
 
 static float ballTypeToRadius[TOTAL_TYPES] = {
     BASE_RADIUS,
-    BASE_RADIUS * (float) pow(RADIUS_MULTIPLIER, 1.0),
-    BASE_RADIUS * (float) pow(RADIUS_MULTIPLIER, 2.0),
-    BASE_RADIUS * (float) pow(RADIUS_MULTIPLIER, 3.0),
-    BASE_RADIUS * (float) pow(RADIUS_MULTIPLIER, 4.0),
-    BASE_RADIUS * (float) pow(RADIUS_MULTIPLIER, 5.0),
-    BASE_RADIUS * (float) pow(RADIUS_MULTIPLIER, 6.0),
-    BASE_RADIUS * (float) pow(RADIUS_MULTIPLIER, 7.0),
-    BASE_RADIUS * (float) pow(RADIUS_MULTIPLIER, 8.0),
-    BASE_RADIUS * (float) pow(RADIUS_MULTIPLIER, 9.0),
+    BASE_RADIUS *(float)pow(RADIUS_MULTIPLIER, 1.0),
+    BASE_RADIUS *(float)pow(RADIUS_MULTIPLIER, 2.0),
+    BASE_RADIUS *(float)pow(RADIUS_MULTIPLIER, 3.0),
+    BASE_RADIUS *(float)pow(RADIUS_MULTIPLIER, 4.0),
+    BASE_RADIUS *(float)pow(RADIUS_MULTIPLIER, 5.0),
+    BASE_RADIUS *(float)pow(RADIUS_MULTIPLIER, 6.0),
+    BASE_RADIUS *(float)pow(RADIUS_MULTIPLIER, 7.0),
+    BASE_RADIUS *(float)pow(RADIUS_MULTIPLIER, 8.0),
+    BASE_RADIUS *(float)pow(RADIUS_MULTIPLIER, 9.0),
 };
 
 // user data to be passed onto box2d objects
 struct UserDataFlags
 {
     // whether or not the body should remain to be updated
-    bool isAlive {};
+    bool isAlive{};
     // whether or not the body has collided once
-    bool hasCollided {};
+    bool hasCollided{};
     // the radius of the body
-    float radius {};
+    float radius{};
 };
 
 class Ball
 {
-    public:
-        Ball(float _x, float _y, BallType type, b2World * world, b2Vec2 initialVelocity);
-        ~Ball();
+public:
+    Ball(float _x, float _y, BallType type, b2World *world, b2Vec2 initialVelocity);
+    ~Ball();
 
-        void attachBody() noexcept;
+    void attachBody() noexcept;
 
-        inline BallType getType() noexcept { return _type; };
-        inline float getRadius() noexcept { return _radius; };
-        inline b2Body * getBody() noexcept { return _body; };
-       
-        // Applys an impulse to the balls center of mass
-        inline void applyImpulse(b2Vec2 direction) noexcept { _body->ApplyLinearImpulse(direction, _body->GetWorldCenter(), true); };
-        
-        float x, y;
-        float angle;
-    private:
-        float _radius;
-        // determines whether or not the object is handled by the physics engine
-        bool _suspended;
-        // x and y coordinates which determine the center point of the ball
-        // the type of the ball
-        BallType _type;
+    inline BallType getType() noexcept { return _type; };
+    inline float getRadius() noexcept { return _radius; };
+    inline b2Body *getBody() noexcept { return _body; };
 
-        // Body definition for a ball
-        b2BodyDef _bodyDef;
-        // Initialized in constructor
-        b2Body * _body;
-        // Keep track of the world the ball is in.
-        b2World * _world;
+    // Applys an impulse to the balls center of mass
+    inline void applyImpulse(b2Vec2 direction) noexcept { _body->ApplyLinearImpulse(direction, _body->GetWorldCenter(), true); };
 
-        b2Vec2 initialVelocity;
+    float x, y;
+    float angle;
 
-        std::unique_ptr<UserDataFlags> _userData;
+private:
+    float _radius;
+    // determines whether or not the object is handled by the physics engine
+    bool _suspended;
+    // x and y coordinates which determine the center point of the ball
+    // the type of the ball
+    BallType _type;
+
+    // Body definition for a ball
+    b2BodyDef _bodyDef;
+    // Initialized in constructor
+    b2Body *_body;
+    // Keep track of the world the ball is in.
+    b2World *_world;
+
+    b2Vec2 initialVelocity;
+
+    std::unique_ptr<UserDataFlags> _userData;
 };
 
 #endif

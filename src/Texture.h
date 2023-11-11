@@ -9,19 +9,20 @@
 
 class Texture
 {
-    public:
-        SDL_Texture * inner;
-        
-        Texture();
-        Texture(SDL_Renderer * renderer);
-        ~Texture();
+public:
+    SDL_Texture *inner;
 
-        // avoid io in contructor.
-        bool loadFromFile(std::string path);
+    Texture();
+    Texture(SDL_Renderer *renderer);
+    ~Texture();
 
-        void setRenderer(SDL_Renderer * renderer) noexcept;
-    private:
-        SDL_Renderer * _renderer;
+    // avoid io in contructor.
+    bool loadFromFile(std::string path);
+
+    void setRenderer(SDL_Renderer *renderer) noexcept;
+
+private:
+    SDL_Renderer *_renderer;
 };
 
 #endif
