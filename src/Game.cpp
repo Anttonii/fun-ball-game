@@ -14,8 +14,8 @@ Game::~Game()
 
 bool Game::init()
 {
-    ballTextures = loadAllBallTextures(app->getRenderer());
-    if (!ballTextures)
+    loadAllTextures(app->getRenderer());
+    if (!textures)
     {
         std::cout << "Unable to initialize game, failed to load ball textures." << std::endl;
         return false;
@@ -131,14 +131,14 @@ void Game::render(SDL_Renderer *renderer)
         int x = dropperX - radius;
         int y = dropperY - radius;
         SDL_Rect quad = {x, y, diameter, diameter};
-        SDL_RenderCopyEx(renderer, ballTextures[currentBall].inner, NULL, &quad, 0.0, NULL, SDL_FLIP_NONE);
+        SDL_RenderCopyEx(renderer, textures[currentBall].inner, NULL, &quad, 0.0, NULL, SDL_FLIP_NONE);
     }
 
     int nextBallRadius = (int)ballTypeToRadius[BallType::RED];
     int nextBallDiameter = nextBallRadius * 2;
     SDL_Rect nextBallQuad = {670 - (int)ballTypeToRadius[BallType::RED], 160 - (int)ballTypeToRadius[BallType::RED],
                              nextBallDiameter, nextBallDiameter};
-    SDL_RenderCopyEx(renderer, ballTextures[nextBall].inner, NULL, &nextBallQuad, 0.0, NULL, SDL_FLIP_NONE);
+    SDL_RenderCopyEx(renderer, textures[nextBall].inner, NULL, &nextBallQuad, 0.0, NULL, SDL_FLIP_NONE);
 
     // Draws the square around next ball
     drawRect(renderer, 620, 110, 100, 100, 255, 255, 255, 255);
@@ -152,7 +152,7 @@ void Game::render(SDL_Renderer *renderer)
         double angle = (double)balls[i]->angle;
         BallType type = balls[i]->getType();
         SDL_Rect quad = {x, y, diameter, diameter};
-        SDL_RenderCopyEx(renderer, ballTextures[type].inner, NULL, &quad, angle, NULL, SDL_FLIP_NONE);
+        SDL_RenderCopyEx(renderer, textures[type].inner, NULL, &quad, angle, NULL, SDL_FLIP_NONE);
     }
 
     scoreTextObject.renderText();
@@ -377,93 +377,16 @@ void Game::pollEvents()
     }
 }
 
-BallContactListener::BallContactListener(Game *_game, b2World *_world) : game(_game), world(_world)
+void Game::loadAllTextures(SDL_Renderer *renderer)
 {
-    world->SetContactListener(this);
-}
-
-BallContactListener::~BallContactListener()
-{
-}
-
-void BallContactListener::applyForce(float x, float y, float radius) noexcept
-{
-    std::vector<Ball *> balls = game->getBalls();
-    for (std::vector<Ball *>::const_iterator it = balls.begin(); it != balls.end(); it++)
+    textures = new Texture[TOTAL_TYPES];
+    for (int i = 0; i < TOTAL_TYPES; i++)
     {
-        UserDataFlags *userData = (UserDataFlags *)(*it)->getBody()->GetUserData().pointer;
-        if (!userData->isAlive)
-            return;
+        std::string fileName = std::string(ballTypeToString[i]).append(".png");
+        textures[i].setRenderer(renderer);
+        bool res = textures[i].loadFromFile(fileName);
 
-        float x2 = (*it)->x;
-        float y2 = (*it)->y;
-        float r2 = (*it)->getRadius();
-
-        if (circlesOverlap(x, y, radius + 1.5, x2, y2, r2))
-        {
-            float slope = (y2 - y) / (x2 - x);
-            float angle = atan(slope);
-
-            b2Vec2 impulse(cos(angle), -sin(angle));
-            impulse *= std::min(4.0f, (4.0f / abs(impulse.x + impulse.y)));
-            (*it)->applyImpulse(impulse);
-        }
-    }
-}
-
-void BallContactListener::BeginContact(b2Contact *contact)
-{
-    b2WorldManifold worldManifold;
-    contact->GetWorldManifold(&worldManifold);
-
-    b2Body *bodyA = contact->GetFixtureA()->GetBody();
-    b2Body *bodyB = contact->GetFixtureB()->GetBody();
-
-    b2Vec2 point = worldManifold.points[0];
-
-    Ball *ballA = game->getBallFromBody(bodyA);
-    Ball *ballB = game->getBallFromBody(bodyB);
-
-    if (ballA == NULL || ballB == NULL)
-        return;
-
-    const BallType btA = ballA->getType();
-    const BallType btB = ballB->getType();
-
-    UserDataFlags *userDataA = (UserDataFlags *)bodyA->GetUserData().pointer;
-    UserDataFlags *userDataB = (UserDataFlags *)bodyB->GetUserData().pointer;
-
-    if (!userDataA->hasCollided)
-        userDataA->hasCollided = true;
-    if (!userDataB->hasCollided)
-        userDataB->hasCollided = true;
-
-    if (btA == btB && btA != BallType::BLACK && userDataA->isAlive && userDataB->isAlive)
-    {
-        b2Vec2 velocitySum = bodyA->GetLinearVelocity() + bodyB->GetLinearVelocity();
-        velocitySum *= 0.25f;
-
-        float x = point.x * PIXEL_CONVERSION;
-        float y = point.y * PIXEL_CONVERSION;
-        float radius = ballTypeToRadius[btA + 1];
-
-        if (y + radius > BOTTOM_EDGE_Y)
-            y -= y + radius - BOTTOM_EDGE_Y;
-
-        if (x + radius > RIGHT_BORDER_X)
-            x -= x + radius - RIGHT_BORDER_X;
-        else if (x - radius < LEFT_BORDER_X)
-            x += LEFT_BORDER_X - (x - radius);
-
-        userDataA->isAlive = false;
-        userDataB->isAlive = false;
-
-        applyForce(x, y, radius);
-        game->addBall(new Ball(x, y, static_cast<BallType>(btA + 1), world, velocitySum));
-        game->playPop();
-
-        // add the type of the ball times twice and for both balls to the score
-        game->addScore((btA + 1) * 2 * 2);
-        game->updateScoreText();
+        if (!res)
+            std::cout << "Unable to load file: " << fileName.c_str() << std::endl;
     }
 }

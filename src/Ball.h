@@ -5,6 +5,7 @@
 #include <iostream>
 #include <memory>
 
+#include "Game.h"
 #include "Utils.h"
 
 #include "SDL.h"
@@ -12,6 +13,8 @@
 
 #define BASE_RADIUS 25.0f
 #define BASE_DENSITY 0.3f
+
+class Game;
 
 // the radius multiplier applied when balls change color
 static const double RADIUS_MULTIPLIER = 1.26;
@@ -102,6 +105,23 @@ private:
     b2Vec2 initialVelocity;
 
     std::unique_ptr<UserDataFlags> _userData;
+};
+
+// handles contact between 2 balls
+class BallContactListener : public b2ContactListener
+{
+public:
+    // Store a reference to the game, the b2world and bounds for the edges of the game
+    BallContactListener(Game *_game, b2World *_world);
+    ~BallContactListener();
+
+    void BeginContact(b2Contact *contact);
+
+private:
+    void applyForce(float x, float y, float radius) noexcept;
+
+    Game *game;
+    b2World *world;
 };
 
 #endif

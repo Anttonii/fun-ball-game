@@ -30,7 +30,9 @@ void Application::initApplication(Uint32 flags)
     // Init SDL.
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
     {
-        printf("error initializing SDL: %s\n", SDL_GetError());
+        printf("Error initializing SDL.\n"
+               "SDL_Error: %s\n",
+               SDL_GetError());
     }
 
     // Create window
@@ -41,7 +43,9 @@ void Application::initApplication(Uint32 flags)
 
     if (win == NULL)
     {
-        printf("error initializing window: %s\n", SDL_GetError());
+        printf("Error initializing window.\n"
+               "SDL_Error: %s\n",
+               SDL_GetError());
     }
 
     // Construct SDL renderer object
@@ -50,14 +54,18 @@ void Application::initApplication(Uint32 flags)
 
     if (rend == NULL)
     {
-        std::cout << "Error initializing renderer: " << SDL_GetError() << std::endl;
+        printf("SDL Renderer could not be initialized!\n"
+               "SDL_Error: %s\n",
+               SDL_GetError());
     }
 
     // Initialize font engine
     int ttf = TTF_Init();
     if (ttf != 0)
     {
-        std::cout << "Error initializing sdl_ttf: " << SDL_GetError() << std::endl;
+        printf("SDL2_ttf could not be initialized!\n"
+               "SDL_Error: %s\n",
+               SDL_GetError());
     }
 
     // Initialize SDL2_mixer

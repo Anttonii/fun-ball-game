@@ -45,24 +45,6 @@
 // gravity vector
 static const b2Vec2 gravity = b2Vec2(0, 10);
 
-static Texture *loadAllBallTextures(SDL_Renderer *renderer)
-{
-    static Texture *textures = new Texture[TOTAL_TYPES];
-    for (int i = 0; i < TOTAL_TYPES; i++)
-    {
-        std::string fileName = std::string(ballTypeToString[i]).append(".png");
-        textures[i].setRenderer(renderer);
-        bool res = textures[i].loadFromFile(fileName);
-
-        if (!res)
-        {
-            std::cout << "Unable to load file: " << fileName.c_str() << std::endl;
-            return NULL;
-        }
-    }
-    return textures;
-}
-
 // Edges of the game world to keep balls within
 struct Edge
 {
@@ -78,25 +60,9 @@ struct Edge
     b2FixtureDef *fixture;
 };
 
-// forward declaration for BallContactListener
-class Game;
-
-// handles contact between 2 balls
-class BallContactListener : public b2ContactListener
-{
-public:
-    // Store a reference to the game, the b2world and bounds for the edges of the game
-    BallContactListener(Game *_game, b2World *_world);
-    ~BallContactListener();
-
-    void BeginContact(b2Contact *contact);
-
-private:
-    void applyForce(float x, float y, float radius) noexcept;
-
-    Game *game;
-    b2World *world;
-};
+class Ball;
+class BallContactListener;
+enum BallType : unsigned int;
 
 class Game : public Scene
 {
@@ -160,11 +126,13 @@ private:
     // Generates randomly the next balls
     void generateNextBall() noexcept;
 
+    // Loads game related textures
+    void loadAllTextures(SDL_Renderer *renderer);
+
     Application *app;
 
     b2BodyDef groundBodyDef;
     b2World world;
-    Texture *ballTextures;
     BallContactListener *contactListener;
 
     std::vector<Ball *> balls;
@@ -201,6 +169,9 @@ private:
 
     // The audio to play when bubbles pop.
     Audio *popAudio;
+
+    // Ball textures loaded
+    Texture *textures;
 };
 
 #endif
